@@ -1,7 +1,7 @@
 <?php
 namespace spec\watoki\deli;
 
-use watoki\deli\Path;
+use spec\watoki\deli\fixtures\RequestFixture;
 use watoki\deli\Request;
 use watoki\deli\router\DynamicRouter;
 use watoki\deli\Router;
@@ -15,7 +15,9 @@ use watoki\scrut\Specification;
  * Router which uses a TargetFactory to create the Target. There are different kind of
  * Targets with different sources for the Response (e.g. closure, objects implementing the
  * Responding interface or plain objects).
- */
+ *
+ * @property RequestFixture request <-
+*/
 class RespondToRequestTest extends Specification {
 
     /**
@@ -26,8 +28,8 @@ class RespondToRequestTest extends Specification {
             return 'Hello ' . $r->getArguments()->get('name');
         }));
 
-        $this->givenARequestWithTheTarget('path/to/target');
-        $this->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
+        $this->request->givenTheRequestHasTheTarget('path/to/target');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
         $this->whenIGetTheResponseForTheRequest();
         $this->thenTheResponseShouldBe('Hello Homer');
     }
@@ -44,8 +46,8 @@ class RespondToRequestTest extends Specification {
         }');
         $this->router->set('path/to/responding', RespondingTarget::factory(new $className()));
 
-        $this->givenARequestWithTheTarget('path/to/responding');
-        $this->givenTheRequestHasTheArgument_WithTheValue('name', 'Bart');
+        $this->request->givenTheRequestHasTheTarget('path/to/responding');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Bart');
         $this->whenIGetTheResponseForTheRequest();
         $this->thenTheResponseShouldBe('Hello Bart');
     }
@@ -63,8 +65,8 @@ class RespondToRequestTest extends Specification {
         }');
         $this->router->set('path/to/object', ObjectTarget::factory(new $className()));
 
-        $this->givenARequestWithTheTarget('path/to/object');
-        $this->givenTheRequestHasTheMethod('theMethod');
+        $this->request->givenTheRequestHasTheTarget('path/to/object');
+        $this->request->givenTheRequestHasTheMethod('theMethod');
         $this->whenIGetTheResponseForTheRequest();
         $this->thenTheResponseShouldBe('Hello World');
     }
@@ -77,33 +79,18 @@ class RespondToRequestTest extends Specification {
     /** @var mixed */
     private $response;
 
-    /** @var Request */
-    private $request;
-
     protected function setUp() {
         parent::setUp();
         $this->router = new DynamicRouter();
     }
 
-    public function givenARequestWithTheTarget($pathString) {
-        $this->request = new Request(new Path(), Path::fromString($pathString));
-    }
-
-    public function givenTheRequestHasTheMethod($string) {
-        $this->request = new Request(new Path(), $this->request->getTarget(), $string);
-    }
-
     public function whenIGetTheResponseForTheRequest() {
-        $target = $this->router->route($this->request);
+        $target = $this->router->route($this->request->request);
         $this->response = $target->respond();
     }
 
     public function thenTheResponseShouldBe($string) {
         $this->assertEquals($string, $this->response);
-    }
-
-    public function givenTheRequestHasTheArgument_WithTheValue($key, $value) {
-        $this->request->getArguments()->set($key, $value);
     }
 
 } 
