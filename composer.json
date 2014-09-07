@@ -1,0 +1,30 @@
+{
+    "name": "watoki/deli",
+    "description": "Abstract delivery system for PHP applications",
+    "keywords": ["delivery", "routing", "router", "watoki"],
+    "homepage": "http://github.com/watoki/deli",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nikolas Martens",
+            "email": "Nikolas.M@rtens.org",
+            "homepage": "http://rtens.org"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.8",
+        "watoki/collections": "*",
+		"watoki/factory": "*"
+    },
+    "require-dev": {
+        "watoki/scrut": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "watoki\\deli": "src/",
+            "spec\\watoki\\deli": ""
+        }
+    },
+    "minimum-stability": "dev"
+}
