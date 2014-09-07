@@ -35,6 +35,19 @@ class ObjectTargetTest extends Specification {
         $this->thenTheResponseShouldBe('This one');
     }
 
+    function testIncompleteMixedArguments() {
+        $this->givenTheClass_WithTheBody('IncompleteMixedArguments', '
+            public function doThat($uno, $dos="two", $tres="three") {
+                return $uno . $dos. $tres;
+            }
+        ');
+        $this->request->givenTheRequestHasTheMethod('that');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue(0, 'one');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('tres', '3');
+        $this->whenIGetTheResponseFromTheTarget();
+        $this->thenTheResponseShouldBe('onetwo3');
+    }
+
     ################ SET-UP ##################
 
     private $object;
