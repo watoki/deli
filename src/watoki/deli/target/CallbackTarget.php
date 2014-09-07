@@ -4,6 +4,7 @@ namespace watoki\deli\target;
 use watoki\deli\Request;
 use watoki\deli\Response;
 use watoki\deli\Target;
+use watoki\factory\Factory;
 
 class CallbackTarget extends Target {
 
@@ -19,12 +20,8 @@ class CallbackTarget extends Target {
         $this->callback = $callback;
     }
 
-    /**
-     * @param callable $callback
-     * @return TargetFactory
-     */
     public static function factory($callback) {
-        return new TargetFactory(__CLASS__, array($callback));
+        return new TargetFactory(new Factory(), __CLASS__, array($callback));
     }
 
     /**

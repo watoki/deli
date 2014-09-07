@@ -22,6 +22,19 @@ class ObjectTargetTest extends Specification {
         $this->thenTheResponseShouldBe('Something');
     }
 
+    function testMapNamedArguments() {
+        $this->givenTheClass_WithTheBody('MapNamedArguments', '
+            public function doThis($uno) {
+                return "This " . $uno;
+            }
+        ');
+
+        $this->request->givenTheRequestHasTheMethod('this');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('uno', 'one');
+        $this->whenIGetTheResponseFromTheTarget();
+        $this->thenTheResponseShouldBe('This one');
+    }
+
     ################ SET-UP ##################
 
     private $object;
@@ -34,7 +47,7 @@ class ObjectTargetTest extends Specification {
     }
 
     private function whenIGetTheResponseFromTheTarget() {
-        $target = new ObjectTarget($this->request->request, $this->object);
+        $target = new ObjectTarget($this->request->request, $this->object, $this->factory);
         $this->response = $target->respond();
     }
 

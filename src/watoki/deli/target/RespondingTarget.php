@@ -5,6 +5,7 @@ use watoki\deli\Request;
 use watoki\deli\Responding;
 use watoki\deli\Response;
 use watoki\deli\Target;
+use watoki\factory\Factory;
 
 class RespondingTarget extends Target {
 
@@ -15,8 +16,8 @@ class RespondingTarget extends Target {
         $this->object = $object;
     }
 
-    public static function factory(Responding $object) {
-        return new TargetFactory(__CLASS__, array($object));
+    public static function factory(Factory $factory, Responding $object) {
+        return new TargetFactory($factory, __CLASS__, array($object));
     }
 
     /**

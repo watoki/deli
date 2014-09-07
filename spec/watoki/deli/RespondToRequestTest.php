@@ -44,7 +44,7 @@ class RespondToRequestTest extends Specification {
                 return "Hello " . $request->getArguments()->get("name");
             }
         }');
-        $this->router->set('path/to/responding', RespondingTarget::factory(new $className()));
+        $this->router->set('path/to/responding', RespondingTarget::factory($this->factory, new $className()));
 
         $this->request->givenTheRequestHasTheTarget('path/to/responding');
         $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Bart');
@@ -63,7 +63,7 @@ class RespondToRequestTest extends Specification {
                 return "Hello World";
             }
         }');
-        $this->router->set('path/to/object', ObjectTarget::factory(new $className()));
+        $this->router->set('path/to/object', ObjectTarget::factory($this->factory, new $className()));
 
         $this->request->givenTheRequestHasTheTarget('path/to/object');
         $this->request->givenTheRequestHasTheMethod('theMethod');
