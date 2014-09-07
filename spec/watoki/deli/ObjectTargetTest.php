@@ -50,6 +50,29 @@ class ObjectTargetTest extends Specification {
         $this->thenTheResponseShouldBe('onetwo3');
     }
 
+    function testInjectRequest() {
+        $this->givenTheClass_WithTheBody('InjectRequest', '
+            public function doThis(\\watoki\\deli\\Request $request) {
+                return $request->getMethod();
+            }
+        ');
+        $this->request->givenTheRequestHasTheMethod('this');
+        $this->whenIGetTheResponseFromTheTarget();
+        $this->thenTheResponseShouldBe('this');
+    }
+
+    function testArgumentWithNameRequest() {
+        $this->givenTheClass_WithTheBody('ArgumentWithNameRequest', '
+            public function doThis($request) {
+                return $request;
+            }
+        ');
+        $this->request->givenTheRequestHasTheMethod('this');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('request', 'that');
+        $this->whenIGetTheResponseFromTheTarget();
+        $this->thenTheResponseShouldBe('that');
+    }
+
     function testFilterArguments() {
         $this->givenTheClass_WithTheBody('FilterArguments', '
             /**

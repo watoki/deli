@@ -33,6 +33,9 @@ class ObjectTarget extends Target {
      */
     function respond() {
         $arguments = $this->request->getArguments()->toArray();
+        if (!array_key_exists('request', $arguments)) {
+            $arguments['request'] = $this->request;
+        }
 
         $injector = new Injector($this->factory);
         $reflection = new \ReflectionMethod($this->object, $this->getMethodName());

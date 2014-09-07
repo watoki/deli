@@ -6,6 +6,8 @@ use watoki\factory\FilterFactory;
 
 class DefaultFilterFactory extends FilterFactory {
 
+    public static $CLASS = __CLASS__;
+
     function __construct() {
         $this->registerFilter('array', new ArrayFilter());
         $this->registerFilter('boolean', new BooleanFilter());
