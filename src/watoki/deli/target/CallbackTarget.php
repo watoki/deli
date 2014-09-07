@@ -7,8 +7,6 @@ use watoki\deli\Target;
 
 class CallbackTarget extends Target {
 
-    public static $CLASS = __CLASS__;
-
     /** @var callable */
     private $callback;
 
@@ -26,7 +24,7 @@ class CallbackTarget extends Target {
      * @return TargetFactory
      */
     public static function factory($callback) {
-        return new TargetFactory(self::$CLASS, array($callback));
+        return new TargetFactory(__CLASS__, array($callback));
     }
 
     /**
