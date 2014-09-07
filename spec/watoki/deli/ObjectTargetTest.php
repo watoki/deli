@@ -100,6 +100,35 @@ class ObjectTargetTest extends Specification {
         $this->thenTheResponseShouldBe('[["this"],false,1.4,1,"2001-12-31T12:00:00+01:00","2012-12-31T00:00:00+01:00"]');
     }
 
+    function testInvalidTypeHint() {
+        $this->givenTheClass_WithTheBody('InvalidTypeHint', '
+            /**
+             * @param invalid $one
+             */
+            function doThis($one) {
+                return $one;
+            }
+        ');
+        $this->request->givenTheRequestHasTheMethod('this');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('one', 'not');
+
+        $this->whenIGetTheResponseFromTheTarget();
+        $this->thenTheResponseShouldBe('not');
+    }
+
+    public function testDoNotInflateNullAsDateTime() {
+        $this->givenTheClass_WithTheBody('DoNotInflateNullAsDateTime', '
+            function doThis(\DateTime $d = null) {
+                return $d;
+            }');
+        $this->request->givenTheRequestHasTheMethod('this');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('d', null);
+
+        $this->whenIGetTheResponseFromTheTarget();
+
+        $this->thenTheResponseShouldBe(null);
+    }
+
     ################ SET-UP ##################
 
     private $object;
