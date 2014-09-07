@@ -10,8 +10,17 @@ use watoki\deli\target\ObjectTarget;
 use watoki\deli\target\RespondingTarget;
 use watoki\scrut\Specification;
 
+/**
+ * This describes the basic set-up which gets the Response from a Target, found using a
+ * Router which uses a TargetFactory to create the Target. There are different kind of
+ * Targets with different sources for the Response (e.g. closure, objects implementing the
+ * Responding interface or plain objects).
+ */
 class RespondToRequestTest extends Specification {
 
+    /**
+     * The CallbackTarget requires no infrastructure since it simply calls the callable it's given.
+     */
     function testCallbackTarget() {
         $this->router->set('path/to/target', CallbackTarget::factory(function (Request $r) {
             return 'Hello ' . $r->getArguments()->get('name');
@@ -23,6 +32,9 @@ class RespondToRequestTest extends Specification {
         $this->thenTheResponseShouldBe('Hello Homer');
     }
 
+    /**
+     * A class that implements the Responding interface is handled by the RespondingTarget.
+     */
     function testRespondingTarget() {
         $className = 'TestResponding';
         eval('class ' . $className . ' implements \\watoki\\deli\\Responding {
@@ -38,6 +50,10 @@ class RespondToRequestTest extends Specification {
         $this->thenTheResponseShouldBe('Hello Bart');
     }
 
+    /**
+     * A target can use any plain old PHP object (POPO) as source. The method or the Request is
+     * then mapped to a method of the object by prefixing "do" (e.g. "something" => "doSomething")
+     */
     function testObjectTarget() {
         $className = 'TestObjectEmptyMethod';
         eval('class ' . $className . ' {
@@ -69,24 +85,24 @@ class RespondToRequestTest extends Specification {
         $this->router = new DynamicRouter();
     }
 
-    private function givenARequestWithTheTarget($pathString) {
+    public function givenARequestWithTheTarget($pathString) {
         $this->request = new Request(new Path(), Path::fromString($pathString));
     }
 
-    private function givenTheRequestHasTheMethod($string) {
+    public function givenTheRequestHasTheMethod($string) {
         $this->request = new Request(new Path(), $this->request->getTarget(), $string);
     }
 
-    private function whenIGetTheResponseForTheRequest() {
+    public function whenIGetTheResponseForTheRequest() {
         $target = $this->router->route($this->request);
         $this->response = $target->respond();
     }
 
-    private function thenTheResponseShouldBe($string) {
+    public function thenTheResponseShouldBe($string) {
         $this->assertEquals($string, $this->response);
     }
 
-    private function givenTheRequestHasTheArgument_WithTheValue($key, $value) {
+    public function givenTheRequestHasTheArgument_WithTheValue($key, $value) {
         $this->request->getArguments()->set($key, $value);
     }
 
