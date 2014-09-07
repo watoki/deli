@@ -2,7 +2,9 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
+use watoki\deli\filter\DefaultFilterFactory;
 use watoki\deli\target\ObjectTarget;
+use watoki\factory\FilterFactory;
 use watoki\scrut\Specification;
 
 /**
@@ -48,6 +50,33 @@ class ObjectTargetTest extends Specification {
         $this->thenTheResponseShouldBe('onetwo3');
     }
 
+    function testFilterArguments() {
+        $this->givenTheClass_WithTheBody('FilterArguments', '
+            /**
+             * @param array $array
+             * @param boolean $boolean
+             * @param float $float
+             * @param integer $int
+             * @param \DateTime $dateTime1
+             */
+            public function doSomething($array, $boolean, $float, $int, $dateTime1, \DateTime $dateTime2) {
+                return json_encode(array($array, $boolean, $float, $int, $dateTime1->format("c"), $dateTime2->format("c")));
+            }
+        ');
+        $this->request->givenTheRequestHasTheMethod('something');
+
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('array', 'this');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('boolean', 'false');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('float', '1.4');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('int', '1.5');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('dateTime1', '2001-12-31 12:00');
+        $this->request->givenTheRequestHasTheArgument_WithTheValue('dateTime2', '31.12.2012');
+
+        $this->whenIGetTheResponseFromTheTarget();
+
+        $this->thenTheResponseShouldBe('[["this"],false,1.4,1,"2001-12-31T12:00:00+01:00","2012-12-31T00:00:00+01:00"]');
+    }
+
     ################ SET-UP ##################
 
     private $object;
@@ -60,7 +89,8 @@ class ObjectTargetTest extends Specification {
     }
 
     private function whenIGetTheResponseFromTheTarget() {
-        $target = new ObjectTarget($this->request->request, $this->object, $this->factory);
+        $this->factory->setSingleton(FilterFactory::$CLASS, new DefaultFilterFactory());
+        $target = ObjectTarget::factory($this->factory, $this->object)->create($this->request->request);
         $this->response = $target->respond();
     }
 

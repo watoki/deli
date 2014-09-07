@@ -5,6 +5,7 @@ use watoki\deli\Request;
 use watoki\deli\Response;
 use watoki\deli\Target;
 use watoki\factory\Factory;
+use watoki\factory\FilterFactory;
 use watoki\factory\Injector;
 
 class ObjectTarget extends Target {
@@ -13,6 +14,9 @@ class ObjectTarget extends Target {
 
     /** @var Factory */
     private $factory;
+
+    /** @var FilterFactory <- */
+    public $filterFactory;
 
     function __construct(Request $request, $object, Factory $factory) {
         parent::__construct($request);
@@ -28,9 +32,13 @@ class ObjectTarget extends Target {
      * @return Response
      */
     function respond() {
-        $injector = new Injector($this->factory);
         $arguments = $this->request->getArguments()->toArray();
-        return $injector->injectMethod($this->object, $this->getMethodName(), $arguments);
+
+        $injector = new Injector($this->factory);
+        $reflection = new \ReflectionMethod($this->object, $this->getMethodName());
+        $args = $injector->injectMethodArguments($reflection, $arguments, $this->filterFactory);
+
+        return $reflection->invokeArgs($this->object, $args);
     }
 
     private function getMethodName() {
