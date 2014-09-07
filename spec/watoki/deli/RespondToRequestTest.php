@@ -6,13 +6,25 @@ use watoki\deli\Request;
 use watoki\deli\router\DynamicRouter;
 use watoki\deli\Router;
 use watoki\deli\target\CallbackTarget;
+use watoki\deli\target\ObjectTarget;
 use watoki\deli\target\RespondingTarget;
 use watoki\scrut\Specification;
 
 class RespondToRequestTest extends Specification {
 
+    function testCallbackTarget() {
+        $this->router->set('path/to/target', CallbackTarget::factory(function (Request $r) {
+            return 'Hello ' . $r->getArguments()->get('name');
+        }));
+
+        $this->givenARequestWithTheTarget('path/to/target');
+        $this->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
+        $this->whenIGetTheResponseForTheRequest();
+        $this->thenTheResponseShouldBe('Hello Homer');
+    }
+
     function testRespondingTarget() {
-        $className = 'TestObject';
+        $className = 'TestResponding';
         eval('class ' . $className . ' implements \\watoki\\deli\\Responding {
             public function respond(\\watoki\\deli\\Request $request) {
                 return "Hello " . $request->getArguments()->get("name");
@@ -26,15 +38,19 @@ class RespondToRequestTest extends Specification {
         $this->thenTheResponseShouldBe('Hello Bart');
     }
 
-    function testCallbackTarget() {
-        $this->router->set('path/to/target', CallbackTarget::factory(function (Request $r) {
-            return 'Hello ' . $r->getArguments()->get('name');
-        }));
+    function testObjectTarget() {
+        $className = 'TestObjectEmptyMethod';
+        eval('class ' . $className . ' {
+            public function doTheMethod() {
+                return "Hello World";
+            }
+        }');
+        $this->router->set('path/to/object', ObjectTarget::factory(new $className()));
 
-        $this->givenARequestWithTheTarget('path/to/target');
-        $this->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
+        $this->givenARequestWithTheTarget('path/to/object');
+        $this->givenTheRequestHasTheMethod('theMethod');
         $this->whenIGetTheResponseForTheRequest();
-        $this->thenTheResponseShouldBe('Hello Homer');
+        $this->thenTheResponseShouldBe('Hello World');
     }
 
     ######################### SET-UP #########################
@@ -55,6 +71,10 @@ class RespondToRequestTest extends Specification {
 
     private function givenARequestWithTheTarget($pathString) {
         $this->request = new Request(new Path(), Path::fromString($pathString));
+    }
+
+    private function givenTheRequestHasTheMethod($string) {
+        $this->request = new Request(new Path(), $this->request->getTarget(), $string);
     }
 
     private function whenIGetTheResponseForTheRequest() {
