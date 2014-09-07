@@ -27,13 +27,14 @@ class RespondToRequestTest extends Specification {
     }
 
     function testCallbackTarget() {
-        $this->router->set('path/to/target', CallbackTarget::factory(function () {
-            return 'Hello World';
+        $this->router->set('path/to/target', CallbackTarget::factory(function (Request $r) {
+            return 'Hello ' . $r->getArguments()->get('name');
         }));
 
         $this->givenARequestWithTheTarget('path/to/target');
+        $this->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
         $this->whenIGetTheResponseForTheRequest();
-        $this->thenTheResponseShouldBe('Hello World');
+        $this->thenTheResponseShouldBe('Hello Homer');
     }
 
     ######################### SET-UP #########################
