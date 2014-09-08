@@ -44,6 +44,16 @@ class RouteWithPatternsTest extends Specification {
         $this->thenTheRequestArgument_ShouldBe('name', 'baz');
     }
 
+    function testSpecificOverGeneral() {
+        $this->givenISetATargetForThePath_Responding('foo/bar', 'first');
+        $this->givenISetATargetForThePath_Responding('foo/{bar}/baz', 'second');
+        $this->givenISetATargetForThePath_Responding('foo/bar/baz', 'third');
+        $this->request->givenTheRequestHasTheTarget('foo/bar/baz');
+
+        $this->whenIRouteTheRequest();
+        $this->thenResponseShouldBe('third');
+    }
+
     ############### SET-UP #################
 
     /** @var DynamicRouter */
@@ -52,8 +62,8 @@ class RouteWithPatternsTest extends Specification {
     /** @var Target|null */
     private $target;
 
-    /** @var Request */
-    private $targetRequest;
+    /** @var mixed|Request */
+    private $response;
 
     /** @var null|\Exception */
     private $caught;
@@ -69,9 +79,15 @@ class RouteWithPatternsTest extends Specification {
         }));
     }
 
+    private function  givenISetATargetForThePath_Responding($path, $return) {
+        $this->router->set($path, CallbackTarget::factory(function () use ($return) {
+            return $return;
+        }));
+    }
+
     private function whenIRouteTheRequest() {
         $this->target = $this->router->route($this->request->request);
-        $this->targetRequest = $this->target->respond();
+        $this->response = $this->target->respond();
     }
 
     private function whenITryToRouteTheRequest() {
@@ -87,20 +103,24 @@ class RouteWithPatternsTest extends Specification {
     }
 
     private function thenTheRequestArgument_ShouldBe($key, $value) {
-        $this->assertEquals($value, $this->targetRequest->getArguments()->get($key));
+        $this->assertEquals($value, $this->response->getArguments()->get($key));
     }
 
     private function thenTheRequestShouldHaveTheTarget($string) {
-        $this->assertEquals($string, $this->targetRequest->getTarget()->toString());
+        $this->assertEquals($string, $this->response->getTarget()->toString());
     }
 
     private function thenTheRequestShouldHaveTheContext($string) {
-        $this->assertEquals($string, $this->targetRequest->getContext()->toString());
+        $this->assertEquals($string, $this->response->getContext()->toString());
     }
 
     private function thenAnException_ShouldBeThrown($string) {
         $this->assertNotNull($this->caught);
         $this->assertEquals($string, $this->caught->getMessage());
+    }
+
+    private function thenResponseShouldBe($string) {
+        $this->assertEquals($string, $this->response);
     }
 
 }

@@ -29,6 +29,12 @@ class DynamicRouter implements Router {
 
     public function set($pattern, TargetFactory $factory) {
         $this->factories[$pattern] = $factory;
+        uksort($this->factories, function ($a, $b) {
+            $pattern = '/{[^}]+}/';
+            $a = preg_replace($pattern, '', $a);
+            $b = preg_replace($pattern, '', $b);
+            return strlen($b) - strlen($a);
+        });
     }
 
     /**
