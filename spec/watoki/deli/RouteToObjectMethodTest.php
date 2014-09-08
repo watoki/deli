@@ -8,9 +8,18 @@ use watoki\factory\FilterFactory;
 use watoki\scrut\Specification;
 
 /**
+ * The ObjectTarget can use any plain old PHP object (POPO) as source. The method or the Request is
+ * then mapped to a method of the object by prefixing "do" (e.g. "something" => "doSomething").
+ *
+ * A TargetFactory for the ObjectTarget can be created with an instance of Factory and the object
+ *
+ * ```php
+ * ObjectTarget::factory($factory, $object)
+ * ```
+ *
  * @property RequestFixture request <-
  */
-class ObjectTargetTest extends Specification {
+class RouteToObjectMethodTest extends Specification {
 
     function testMapMethodName() {
         $this->givenTheClass_WithTheBody('MapMethodName', '
