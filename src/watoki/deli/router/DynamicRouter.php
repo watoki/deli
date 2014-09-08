@@ -1,6 +1,7 @@
 <?php
 namespace watoki\deli\router;
 
+use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\Router;
 use watoki\deli\Target;
@@ -17,14 +18,41 @@ class DynamicRouter implements Router {
      * @return Target
      */
     public function route(Request $request) {
-        $key = $request->getTarget()->toString();
-        if (!array_key_exists($key, $this->factories)) {
-            throw new \InvalidArgumentException('Could not find a path matching [not/existing]');
+        foreach ($this->factories as $path => $factory) {
+            $nextRequest = $this->matches(Path::fromString($path), $request);
+            if ($nextRequest) {
+                return $this->factories[$path]->create($nextRequest);
+            }
         }
-        return $this->factories[$key]->create($request);
+        throw new \InvalidArgumentException("Could not find a path matching [{$request->getTarget()->toString()}]");
     }
 
     public function set($pattern, TargetFactory $factory) {
         $this->factories[$pattern] = $factory;
+    }
+
+    /**
+     * @param Path $path
+     * @param Request $request
+     * @return null|Request Null if no match
+     */
+    private function matches(Path $path, Request $request) {
+        $target = $request->getTarget();
+
+        $i = 0;
+        foreach ($path as $i => $p) {
+            if ($target->get($i) != $p) {
+                if ($i == 0) {
+                    return null;
+                }
+                break;
+            }
+        }
+
+        return new Request(
+            new Path($target->slice(0, $i + 1)->toArray()),
+            new Path($target->slice($i + 1)->toArray()),
+            $request->getMethod(),
+            $request->getArguments());
     }
 }
