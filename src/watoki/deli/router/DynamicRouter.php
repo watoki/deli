@@ -13,12 +13,16 @@ class DynamicRouter implements Router {
 
     /**
      * @param Request $request
+     * @throws \InvalidArgumentException If no matching Target can be found
      * @return Target
      */
     public function route(Request $request) {
-        return $this->factories[$request->getTarget()->toString()]->create($request);
+        $key = $request->getTarget()->toString();
+        if (!array_key_exists($key, $this->factories)) {
+            throw new \InvalidArgumentException('Could not find a path matching [not/existing]');
+        }
+        return $this->factories[$key]->create($request);
     }
-
 
     public function set($pattern, TargetFactory $factory) {
         $this->factories[$pattern] = $factory;
