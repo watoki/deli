@@ -9,7 +9,7 @@ use watoki\deli\target\CallbackTarget;
 require_once __DIR__ . '/../../../../bootstrap.php';
 
 $router = new DynamicRouter();
-$router->set('', CallbackTarget::factory(function () {
+$router->set(new Path(), CallbackTarget::factory(function () {
     causeFatalError();
 }));
 

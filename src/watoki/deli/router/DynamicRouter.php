@@ -27,8 +27,8 @@ class DynamicRouter implements Router {
         throw new \InvalidArgumentException("Could not find a path matching [{$request->getTarget()->toString()}]");
     }
 
-    public function set($pattern, TargetFactory $factory) {
-        $this->factories[$pattern] = $factory;
+    public function set(Path $path, TargetFactory $factory) {
+        $this->factories[$path->toString()] = $factory;
         uksort($this->factories, function ($a, $b) {
             $pattern = '/{[^}]+}/';
             $a = preg_replace($pattern, '', $a);

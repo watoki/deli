@@ -3,6 +3,7 @@ namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
 use spec\watoki\deli\fixtures\TestDelivery;
+use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\router\DynamicRouter;
 use watoki\deli\Router;
@@ -77,7 +78,7 @@ class DeliverRequestAndResponseTest extends Specification {
     }
 
     private function given_IsRoutedToTheCallback($path, $callback) {
-        $this->router->set($path, CallbackTarget::factory($callback));
+        $this->router->set(Path::fromString($path), CallbackTarget::factory($callback));
     }
 
     private function given_IsRoutedToARespondingClass_ThatRespondsWith($path, $className, $methodBody) {
@@ -86,7 +87,7 @@ class DeliverRequestAndResponseTest extends Specification {
                 ' . $methodBody . '
             }
         }');
-        $this->router->set($path, RespondingTarget::factory($this->factory, new $className()));
+        $this->router->set(Path::fromString($path), RespondingTarget::factory($this->factory, new $className()));
     }
 
     public function whenIRunTheDelivery() {

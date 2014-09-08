@@ -2,6 +2,7 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
+use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\router\DynamicRouter;
 use watoki\deli\target\CallbackTarget;
@@ -74,13 +75,13 @@ class RouteWithPatternsTest extends Specification {
     }
 
     private function givenISetATargetForThePath($path) {
-        $this->router->set($path, CallbackTarget::factory(function (Request $r) {
+        $this->router->set(Path::fromString($path), CallbackTarget::factory(function (Request $r) {
             return $r;
         }));
     }
 
     private function  givenISetATargetForThePath_Responding($path, $return) {
-        $this->router->set($path, CallbackTarget::factory(function () use ($return) {
+        $this->router->set(Path::fromString($path), CallbackTarget::factory(function () use ($return) {
             return $return;
         }));
     }
