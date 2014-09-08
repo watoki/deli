@@ -24,9 +24,9 @@ class DeliverRequestAndResponseTest extends Specification {
      * The CallbackTarget requires no infrastructure since it simply calls the callable it's given.
      */
     function testCallbackTarget() {
-        $this->router->set('path/to/target', CallbackTarget::factory(function (Request $r) {
+        $this->given_IsRoutedToTheCallback('path/to/target', function (Request $r) {
             return 'Hello ' . $r->getArguments()->get('name');
-        }));
+        });
         $this->request->givenTheRequestHasTheTarget('path/to/target');
         $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
 
@@ -38,15 +38,9 @@ class DeliverRequestAndResponseTest extends Specification {
      * A class that implements the Responding interface is handled by the RespondingTarget.
      */
     function testRespondingTarget() {
-        $className = 'TestResponding';
-        eval('class ' . $className . ' implements \\watoki\\deli\\Responding {
-            public function respond(\\watoki\\deli\\Request $request) {
-                return "Hello " . $request->getArguments()->get("name");
-            }
-        }');
-        $this->router->set('path/to/responding', RespondingTarget::factory($this->factory, new $className()));
-
-        $this->request->givenTheRequestHasTheTarget('path/to/responding');
+        $this->given_IsRoutedToARespondingClass_ThatRespondsWith('path/to/responding', 'TestResponding',
+            'return "Hello " . $request->getArguments()->get("name");');
+                $this->request->givenTheRequestHasTheTarget('path/to/responding');
         $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Bart');
 
         $this->whenIRunTheDelivery();
@@ -64,6 +58,19 @@ class DeliverRequestAndResponseTest extends Specification {
     protected function setUp() {
         parent::setUp();
         $this->router = new DynamicRouter();
+    }
+
+    private function given_IsRoutedToTheCallback($path, $callback) {
+        $this->router->set($path, CallbackTarget::factory($callback));
+    }
+
+    private function given_IsRoutedToARespondingClass_ThatRespondsWith($path, $className, $methodBody) {
+        eval('class ' . $className . ' implements \\watoki\\deli\\Responding {
+            public function respond(\\watoki\\deli\\Request $request) {
+                ' . $methodBody . '
+            }
+        }');
+        $this->router->set($path, RespondingTarget::factory($this->factory, new $className()));
     }
 
     public function whenIRunTheDelivery() {
