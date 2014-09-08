@@ -35,13 +35,12 @@ class RouteWithPatternsTest extends Specification {
     }
 
     function testPatternWithPlaceholder() {
-        $this->markTestIncomplete();
-
         $this->givenISetATargetForThePath('foo/{name}/bar');
         $this->request->givenTheRequestHasTheTarget('foo/baz/bar');
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldBeFound();
+        $this->thenTheRequestShouldHaveTheContext('foo/baz/bar');
         $this->thenTheRequestArgument_ShouldBe('name', 'baz');
     }
 

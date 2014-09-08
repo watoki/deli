@@ -19,7 +19,7 @@ class DynamicRouter implements Router {
      */
     public function route(Request $request) {
         foreach ($this->factories as $path => $factory) {
-            $nextRequest = $this->matches(Path::fromString($path), $request);
+            $nextRequest = $this->match(Path::fromString($path), $request);
             if ($nextRequest) {
                 return $this->factories[$path]->create($nextRequest);
             }
@@ -36,12 +36,17 @@ class DynamicRouter implements Router {
      * @param Request $request
      * @return null|Request Null if no match
      */
-    private function matches(Path $path, Request $request) {
+    private function match(Path $path, Request $request) {
         $target = $request->getTarget();
+        $arguments = $request->getArguments()->copy();
 
         $i = 0;
         foreach ($path as $i => $p) {
-            if ($target->get($i) != $p) {
+            if (substr($p, 0, 1) == '{' && substr($p, -1) == '}') {
+                $key = substr($p, 1, -1);
+                $value = $target->get($i);
+                $arguments->set($key, $value);
+            } else if ($target->get($i) != $p) {
                 if ($i == 0) {
                     return null;
                 }
@@ -53,6 +58,6 @@ class DynamicRouter implements Router {
             new Path($target->slice(0, $i + 1)->toArray()),
             new Path($target->slice($i + 1)->toArray()),
             $request->getMethod(),
-            $request->getArguments());
+            $arguments);
     }
 }
