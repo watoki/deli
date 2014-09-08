@@ -11,11 +11,17 @@ class TestDelivery extends Delivery {
     /** @var \watoki\deli\Request */
     public $request;
 
-    public $response;
+    public $response = false;
+
+    private $echoResponse;
 
     public function __construct(Router $router, Request $request) {
         parent::__construct($router);
         $this->request = $request;
+    }
+
+    public function echoResponse() {
+        $this->echoResponse = true;
     }
 
     /**
@@ -30,6 +36,9 @@ class TestDelivery extends Delivery {
      * @return null
      */
     protected function deliver($response) {
+        if ($this->echoResponse && is_string($response)) {
+            echo $response;
+        }
         $this->response = $response;
     }
 
@@ -37,10 +46,9 @@ class TestDelivery extends Delivery {
      * Is called if an error is caught while running the delivery
      *
      * @param \Exception $exception
-     * @param Request|null $request Null if error occurred while fetching the Request
      * @return mixed|Response
      */
-    protected function error(\Exception $exception, Request $request = null) {
-        return 'Error in ' . $request->getTarget() . ': ' . $exception->getMessage();
+    protected function error(\Exception $exception) {
+        return 'Error: ' . $exception->getMessage();
     }
 }

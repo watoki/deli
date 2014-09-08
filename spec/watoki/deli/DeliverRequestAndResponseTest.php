@@ -53,7 +53,12 @@ class DeliverRequestAndResponseTest extends Specification {
         $this->request->givenTheRequestHasTheTarget('my/path');
 
         $this->whenIRunTheDelivery();
-        $this->thenTheResponseShouldBe('Error in my/path: Something went wrong');
+        $this->thenTheResponseShouldBe('Error: Something went wrong');
+    }
+
+    function testCatchFatalErrors() {
+        $this->whenIExecute('fixtures/fatal.php');
+        $this->thenTheOutputShouldStartWith('Error: Call to undefined function causeFatalError()');
     }
 
     ######################### SET-UP #########################
@@ -63,6 +68,8 @@ class DeliverRequestAndResponseTest extends Specification {
 
     /** @var TestDelivery */
     private $delivery;
+
+    private $outputString;
 
     protected function setUp() {
         parent::setUp();
@@ -89,6 +96,17 @@ class DeliverRequestAndResponseTest extends Specification {
 
     public function thenTheResponseShouldBe($string) {
         $this->assertEquals($string, $this->delivery->response);
+    }
+
+    private function whenIExecute($file) {
+        $output = array();
+        $file = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $file);
+        exec('php ' . __DIR__ . DIRECTORY_SEPARATOR . $file, $output);
+        $this->outputString = implode("\n", $output);
+    }
+
+    private function thenTheOutputShouldStartWith($string) {
+        $this->assertStringStartsWith($string, $this->outputString);
     }
 
 } 
