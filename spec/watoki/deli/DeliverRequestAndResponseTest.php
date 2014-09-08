@@ -17,7 +17,7 @@ use watoki\scrut\Specification;
  * Responding interface or plain objects).
  *
  * @property RequestFixture request <-
-*/
+ */
 class DeliverRequestAndResponseTest extends Specification {
 
     /**
@@ -40,11 +40,20 @@ class DeliverRequestAndResponseTest extends Specification {
     function testRespondingTarget() {
         $this->given_IsRoutedToARespondingClass_ThatRespondsWith('path/to/responding', 'TestResponding',
             'return "Hello " . $request->getArguments()->get("name");');
-                $this->request->givenTheRequestHasTheTarget('path/to/responding');
+        $this->request->givenTheRequestHasTheTarget('path/to/responding');
         $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Bart');
 
         $this->whenIRunTheDelivery();
         $this->thenTheResponseShouldBe('Hello Bart');
+    }
+
+    function testCatchExceptions() {
+        $this->given_IsRoutedToARespondingClass_ThatRespondsWith('my/path', 'CatchExceptions',
+            'throw new \Exception("Something went wrong");');
+        $this->request->givenTheRequestHasTheTarget('my/path');
+
+        $this->whenIRunTheDelivery();
+        $this->thenTheResponseShouldBe('Error in my/path: Something went wrong');
     }
 
     ######################### SET-UP #########################

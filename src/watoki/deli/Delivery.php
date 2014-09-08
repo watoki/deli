@@ -11,8 +11,15 @@ abstract class Delivery {
     }
 
     public function run() {
-        $target = $this->router->route($this->fetch());
-        $this->deliver($target->respond());
+        $request = null;
+        try {
+            $request = $this->fetch();
+            $target = $this->router->route($request);
+            $response = $target->respond();
+        } catch (\Exception $e) {
+            $response = $this->error($e, $request);
+        }
+        $this->deliver($response);
     }
 
     /**
@@ -25,5 +32,14 @@ abstract class Delivery {
      * @return null
      */
     abstract protected function deliver($response);
+
+    /**
+     * Is called if an error is caught while running the delivery
+     *
+     * @param \Exception $exception
+     * @param Request|null $request Null if error occurred while fetching the Request
+     * @return mixed|Response
+     */
+    abstract protected function error(\Exception $exception, Request $request = null);
 
 } 
