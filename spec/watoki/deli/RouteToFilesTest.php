@@ -60,7 +60,7 @@ class RouteToFilesTest extends Specification {
         $this->request->givenTheRequestHasTheTarget('foo/here/target');
 
         $this->whenITryToRouteTheRequest();
-        $this->thenThreeException_ShouldBeThrown('[not\foo\HereClass] needs to implement Responding');
+        $this->thenTheException_ShouldBeThrown('[not\foo\HereClass] needs to implement Responding');
     }
 
     function testTargetIsFile() {
@@ -75,6 +75,12 @@ class RouteToFilesTest extends Specification {
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldRespondWith('file/foo/bar -> Hello again');
+    }
+
+    function testTargetDoesNotExist() {
+        $this->request->givenTheRequestHasTheTarget('non/existing');
+        $this->whenITryToRouteTheRequest();
+        $this->thenTheException_ShouldBeThrown('Could not route [non/existing]');
     }
 
     ###################### SET-UP #########################
@@ -164,7 +170,7 @@ class RouteToFilesTest extends Specification {
         $this->assertEquals($string, $this->target->respond());
     }
 
-    private function thenThreeException_ShouldBeThrown($message) {
+    private function thenTheException_ShouldBeThrown($message) {
         $this->assertNotNull($this->caught);
         $this->assertEquals($message, $this->caught->getMessage());
     }
