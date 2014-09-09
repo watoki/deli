@@ -31,8 +31,16 @@ class RouteWithPatternsTest extends Specification {
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldBeFound();
-        $this->thenTheRequestShouldHaveTheContext('foo/baz');
-        $this->thenTheRequestShouldHaveTheTarget('bar/me');
+        $this->thenTheRoutedRequestShouldHaveTheContext('foo/baz');
+        $this->thenTheRoutedRequestShouldHaveTheTarget('bar/me');
+    }
+
+    function testRootPath() {
+        $this->givenISetATargetForThePath('');
+        $this->request->givenTheRequestHasTheTarget('some/thing');
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheRoutedRequestShouldHaveTheTarget('some/thing');
     }
 
     function testPatternWithPlaceholder() {
@@ -41,8 +49,8 @@ class RouteWithPatternsTest extends Specification {
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldBeFound();
-        $this->thenTheRequestShouldHaveTheContext('foo/baz/bar');
-        $this->thenTheRequestArgument_ShouldBe('name', 'baz');
+        $this->thenTheRoutedRequestShouldHaveTheContext('foo/baz/bar');
+        $this->thenTheRoutedRequestArgument_ShouldBe('name', 'baz');
     }
 
     function testSpecificOverGeneral() {
@@ -103,15 +111,15 @@ class RouteWithPatternsTest extends Specification {
         $this->assertNotNull($this->target);
     }
 
-    private function thenTheRequestArgument_ShouldBe($key, $value) {
+    private function thenTheRoutedRequestArgument_ShouldBe($key, $value) {
         $this->assertEquals($value, $this->response->getArguments()->get($key));
     }
 
-    private function thenTheRequestShouldHaveTheTarget($string) {
+    private function thenTheRoutedRequestShouldHaveTheTarget($string) {
         $this->assertEquals($string, $this->response->getTarget()->toString());
     }
 
-    private function thenTheRequestShouldHaveTheContext($string) {
+    private function thenTheRoutedRequestShouldHaveTheContext($string) {
         $this->assertEquals($string, $this->response->getContext()->toString());
     }
 

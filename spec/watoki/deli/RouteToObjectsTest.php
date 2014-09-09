@@ -19,7 +19,7 @@ use watoki\scrut\Specification;
  *
  * @property RequestFixture request <-
  */
-class RouteToObjectMethodTest extends Specification {
+class RouteToObjectsTest extends Specification {
 
     function testMapMethodName() {
         $this->givenTheClass_WithTheBody('MapMethodName', '

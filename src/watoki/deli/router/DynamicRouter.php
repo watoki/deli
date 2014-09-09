@@ -46,6 +46,14 @@ class DynamicRouter implements Router {
         $target = $request->getTarget();
         $arguments = $request->getArguments()->copy();
 
+        if ($path->isEmpty()) {
+            return new Request(
+                new Path(),
+                $request->getTarget()->copy(),
+                $request->getMethod(),
+                $arguments);
+        }
+
         $i = 0;
         foreach ($path as $i => $p) {
             if (substr($p, 0, 1) == '{' && substr($p, -1) == '}') {
