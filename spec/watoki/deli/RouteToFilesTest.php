@@ -2,8 +2,10 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
+use watoki\deli\Request;
 use watoki\deli\router\StaticRouter;
 use watoki\deli\Target;
+use watoki\deli\target\CallbackTarget;
 use watoki\scrut\Specification;
 use watoki\stores\adapter\FileStoreAdapter;
 use watoki\stores\file\FileStore;
@@ -61,6 +63,20 @@ class RouteToFilesTest extends Specification {
         $this->thenThreeException_ShouldBeThrown('[not\foo\HereClass] needs to implement Responding');
     }
 
+    function testTargetIsFile() {
+        $this->givenAFile_WithContent('file/foo/bar', 'Hello again');
+        $this->request->givenTheRequestHasTheTarget('file/foo/bar');
+
+        $this->givenAnObjectFromAFileIsCreatedWith(function (Request $r, File $f) {
+            return new CallbackTarget($r, function () use ($r, $f) {
+                return $r->getContext() . ' -> ' . $f->content;
+            });
+        });
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith('file/foo/bar -> Hello again');
+    }
+
     ###################### SET-UP #########################
 
     private $namespace;
@@ -75,6 +91,9 @@ class RouteToFilesTest extends Specification {
 
     /** @var null|\Exception */
     private $caught;
+
+    /** @var callable */
+    private $fileObject;
 
     protected function setUp() {
         parent::setUp();
@@ -116,12 +135,20 @@ class RouteToFilesTest extends Specification {
         eval($code);
 
         $fileName = $folder . '/' . $name .'.php';
+        $this->givenAFile_WithContent($fileName, '<?php ' . $code);
+    }
 
-        $this->file->create(new File('<?php ' . $code), $fileName);
+    private function givenAFile_WithContent($filename, $content) {
+        $this->file->create(new File($content), $filename);
+    }
+
+    private function givenAnObjectFromAFileIsCreatedWith($callable) {
+        $this->fileObject = $callable;
     }
 
     private function whenIRouteTheRequest() {
         $router = new StaticRouter($this->factory, $this->file, $this->namespace, $this->suffix);
+        $router->setFileTargetCreator($this->fileObject);
         $this->target = $router->route($this->request->request);
     }
 

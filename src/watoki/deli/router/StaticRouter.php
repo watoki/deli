@@ -6,6 +6,7 @@ use watoki\deli\Request;
 use watoki\deli\Responding;
 use watoki\deli\Router;
 use watoki\deli\Target;
+use watoki\deli\target\CallbackTarget;
 use watoki\deli\target\ObjectTarget;
 use watoki\deli\target\RespondingTarget;
 use watoki\factory\Factory;
@@ -26,6 +27,9 @@ class StaticRouter implements Router {
 
     /** @var \watoki\factory\Factory */
     private $factory;
+
+    /** @var callable */
+    private $fileTargetCreator;
 
     function __construct(Factory $factory, FileStore $store, $namespace, $suffix = self::DEFAULT_SUFFIX) {
         $this->factory = $factory;
@@ -72,6 +76,33 @@ class StaticRouter implements Router {
             }
         }
 
+        if ($this->fileTargetCreator && $this->store->exists($request->getTarget()->toString())) {
+            return $this->createTargetFromFile($request);
+        }
+
         throw new \Exception("Could not route [{$request->getTarget()}]");
+    }
+
+    /**
+     * @param callable $targetCreator Returns a Target given the Request and a File
+     */
+    public function setFileTargetCreator($targetCreator) {
+        $this->fileTargetCreator = $targetCreator;
+    }
+
+    /**
+     * @param Request $request
+     * @return CallbackTarget|ObjectTarget|RespondingTarget
+     */
+    private function createTargetFromFile(Request $request) {
+        $nextRequest = new Request(
+            $request->getTarget()->copy(),
+            new Path(),
+            $request->getMethod(),
+            $request->getArguments()->copy()
+        );
+
+        $callable = $this->fileTargetCreator;
+        return $callable($nextRequest, $this->store->read($request->getTarget()->toString()));
     }
 }
