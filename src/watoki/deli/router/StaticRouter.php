@@ -1,6 +1,7 @@
 <?php
 namespace watoki\deli\router;
 
+use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\Responding;
 use watoki\deli\Router;
@@ -39,21 +40,33 @@ class StaticRouter implements Router {
      * @return Target
      */
     public function route(Request $request) {
-        $target = $request->getTarget()->copy();
-        $className = ucfirst($target->pop()) . $this->suffix;
+        $currentTarget = new Path();
 
-        $target->append($className);
+        foreach ($request->getTarget() as $node) {
+            $currentTarget->append($node);
 
-        $filePath = $target . '.php';
+            $node = $currentTarget->copy();
+            $className = ucfirst($node->pop()) . $this->suffix;
+            $node->append($className);
 
-        if ($this->store->exists($filePath)) {
-            $fullClassName = $this->namespace . '\\' . implode('\\', $target->toArray());
-            $object = $this->factory->getInstance($fullClassName);
+            $filePath = $node . '.php';
 
-            if ($object instanceof Responding) {
-                return new RespondingTarget($request, $object);
-            } else {
-                return new ObjectTarget($request, $object, $this->factory);
+            if ($this->store->exists($filePath)) {
+                $fullClassName = $this->namespace . '\\' . implode('\\', $node->toArray());
+                $object = $this->factory->getInstance($fullClassName);
+
+                $nextRequest = new Request(
+                    $currentTarget,
+                    new Path($request->getTarget()->slice($currentTarget->count())->toArray()),
+                    $request->getMethod(),
+                    $request->getArguments()->copy()
+                );
+
+                if ($object instanceof Responding) {
+                    return new RespondingTarget($nextRequest, $object);
+                } else {
+                    return new ObjectTarget($nextRequest, $object, $this->factory);
+                }
             }
         }
 

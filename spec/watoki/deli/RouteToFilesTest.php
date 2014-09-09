@@ -35,15 +35,19 @@ class RouteToFilesTest extends Specification {
     }
 
     function testTargetIsARespondingClass() {
-        $this->givenAClass_Implementing_In_WithTheBody('some\space\foo\RespondingClass', '\watoki\deli\Responding', 'foo', '
-            function respond(\\watoki\\deli\\Request $r) {
-                return "Hello there";
-            }
-        ');
+        $this->givenARespondingClass_In_Returning('some\space\foo\RespondingClass', 'foo', '"Hello {$request->getContext()}"');
         $this->request->givenTheRequestHasTheTarget('foo/responding');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Hello there");
+        $this->thenTheTargetShouldRespondWith("Hello foo/responding");
+    }
+
+    function testRespondingClassOnTheWay() {
+        $this->givenARespondingClass_In_Returning('some\space\foo\HereClass', 'foo', '$request->getTarget()->toString()');
+        $this->request->givenTheRequestHasTheTarget('foo/here/some/where');
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith('some/where');
     }
 
     ###################### SET-UP #########################
@@ -73,6 +77,15 @@ class RouteToFilesTest extends Specification {
 
     private function givenAClass_In_WithTheBody($fullName, $folder, $body) {
         $this->givenAClass_Implementing_In_WithTheBody($fullName, null, $folder, $body);
+    }
+
+    private function givenARespondingClass_In_Returning($fullName, $folder, $expression) {
+        $body = '
+            function respond(\\watoki\\deli\\Request $request) {
+                return ' . $expression . ';
+            }
+        ';
+        $this->givenAClass_Implementing_In_WithTheBody($fullName, '\watoki\deli\Responding', $folder, $body);
     }
 
     private function givenAClass_Implementing_In_WithTheBody($fullName, $interface, $folder, $body) {
