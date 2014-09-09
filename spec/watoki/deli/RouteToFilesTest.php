@@ -18,10 +18,10 @@ class RouteToFilesTest extends Specification {
 
     protected function background() {
         $this->givenTheClassSuffixIs('Class');
-        $this->givenTheBaseNamespaceIs('some\space');
     }
 
     function testTargetIsPlainClass() {
+        $this->givenTheBaseNamespaceIs('some\space');
         $this->givenAClass_In_WithTheBody('some\space\foo\bar\TargetClass', 'foo/bar', '
             function doThis() {
                 return "Found me";
@@ -35,7 +35,8 @@ class RouteToFilesTest extends Specification {
     }
 
     function testTargetIsARespondingClass() {
-        $this->givenARespondingClass_In_Returning('some\space\foo\RespondingClass', 'foo', '"Hello {$request->getContext()}"');
+        $this->givenTheBaseNamespaceIs('respond');
+        $this->givenARespondingClass_In_Returning('respond\foo\RespondingClass', 'foo', '"Hello {$request->getContext()}"');
         $this->request->givenTheRequestHasTheTarget('foo/responding');
 
         $this->whenIRouteTheRequest();
@@ -43,11 +44,21 @@ class RouteToFilesTest extends Specification {
     }
 
     function testRespondingClassOnTheWay() {
-        $this->givenARespondingClass_In_Returning('some\space\foo\HereClass', 'foo', '$request->getTarget()->toString()');
+        $this->givenTheBaseNamespaceIs('in');
+        $this->givenARespondingClass_In_Returning('in\foo\HereClass', 'foo', '$request->getTarget()->toString()');
         $this->request->givenTheRequestHasTheTarget('foo/here/some/where');
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldRespondWith('some/where');
+    }
+
+    function testNonRespondingClassOnTheWay() {
+        $this->givenTheBaseNamespaceIs('not');
+        $this->givenAClass_In_WithTheBody('not\foo\HereClass', 'foo', '');
+        $this->request->givenTheRequestHasTheTarget('foo/here/target');
+
+        $this->whenITryToRouteTheRequest();
+        $this->thenThreeException_ShouldBeThrown('[not\foo\HereClass] needs to implement Responding');
     }
 
     ###################### SET-UP #########################
@@ -61,6 +72,9 @@ class RouteToFilesTest extends Specification {
 
     /** @var FileStore */
     private $file;
+
+    /** @var null|\Exception */
+    private $caught;
 
     protected function setUp() {
         parent::setUp();
@@ -111,8 +125,21 @@ class RouteToFilesTest extends Specification {
         $this->target = $router->route($this->request->request);
     }
 
+    private function whenITryToRouteTheRequest() {
+        try {
+            $this->whenIRouteTheRequest();
+        } catch (\Exception $e) {
+            $this->caught = $e;
+        }
+    }
+
     private function thenTheTargetShouldRespondWith($string) {
         $this->assertEquals($string, $this->target->respond());
+    }
+
+    private function thenThreeException_ShouldBeThrown($message) {
+        $this->assertNotNull($this->caught);
+        $this->assertEquals($message, $this->caught->getMessage());
     }
 
 } 

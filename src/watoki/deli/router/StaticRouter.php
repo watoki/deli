@@ -64,8 +64,10 @@ class StaticRouter implements Router {
 
                 if ($object instanceof Responding) {
                     return new RespondingTarget($nextRequest, $object);
-                } else {
+                } else if ($currentTarget->count() == $request->getTarget()->count()) {
                     return new ObjectTarget($nextRequest, $object, $this->factory);
+                } else {
+                    throw new \Exception("[$fullClassName] needs to implement Responding");
                 }
             }
         }
