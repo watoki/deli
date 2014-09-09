@@ -16,10 +16,12 @@ use watoki\stores\memory\SerializerRepository;
  */
 class RouteToFilesTest extends Specification {
 
-    function testTargetIsPlainClass() {
+    protected function background() {
         $this->givenTheClassSuffixIs('Class');
         $this->givenTheBaseNamespaceIs('some\space');
+    }
 
+    function testTargetIsPlainClass() {
         $this->givenAClass_In_WithTheBody('some\space\foo\bar\TargetClass', 'foo/bar', '
             function doThis() {
                 return "Found me";
@@ -30,6 +32,18 @@ class RouteToFilesTest extends Specification {
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldRespondWith("Found me");
+    }
+
+    function testTargetIsARespondingClass() {
+        $this->givenAClass_Implementing_In_WithTheBody('some\space\foo\RespondingClass', '\watoki\deli\Responding', 'foo', '
+            function respond(\\watoki\\deli\\Request $r) {
+                return "Hello there";
+            }
+        ');
+        $this->request->givenTheRequestHasTheTarget('foo/responding');
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith("Hello there");
     }
 
     ###################### SET-UP #########################
@@ -58,12 +72,18 @@ class RouteToFilesTest extends Specification {
     }
 
     private function givenAClass_In_WithTheBody($fullName, $folder, $body) {
+        $this->givenAClass_Implementing_In_WithTheBody($fullName, null, $folder, $body);
+    }
+
+    private function givenAClass_Implementing_In_WithTheBody($fullName, $interface, $folder, $body) {
         $spaceAndName = explode('\\', $fullName);
         $name = array_pop($spaceAndName);
         $space = implode('\\', $spaceAndName);
 
+        $implements = $interface ? 'implements ' . $interface : '';
+
         $code = "namespace $space;
-            class $name {
+            class $name $implements {
                 $body
             }";
         eval($code);

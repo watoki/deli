@@ -2,9 +2,11 @@
 namespace watoki\deli\router;
 
 use watoki\deli\Request;
+use watoki\deli\Responding;
 use watoki\deli\Router;
 use watoki\deli\Target;
 use watoki\deli\target\ObjectTarget;
+use watoki\deli\target\RespondingTarget;
 use watoki\factory\Factory;
 use watoki\stores\file\FileStore;
 
@@ -47,7 +49,12 @@ class StaticRouter implements Router {
         if ($this->store->exists($filePath)) {
             $fullClassName = $this->namespace . '\\' . implode('\\', $target->toArray());
             $object = $this->factory->getInstance($fullClassName);
-            return new ObjectTarget($request, $object, $this->factory);
+
+            if ($object instanceof Responding) {
+                return new RespondingTarget($request, $object);
+            } else {
+                return new ObjectTarget($request, $object, $this->factory);
+            }
         }
 
         throw new \Exception("Could not route [{$request->getTarget()}]");
