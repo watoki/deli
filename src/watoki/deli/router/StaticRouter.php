@@ -16,6 +16,8 @@ class StaticRouter implements Router {
 
     const DEFAULT_SUFFIX = 'Class';
 
+    const PLACEHOLDER_PREFIX = 'xx';
+
     /** @var FileStore */
     private $store;
 
@@ -44,6 +46,24 @@ class StaticRouter implements Router {
      * @return Target
      */
     public function route(Request $request) {
+        $target = $this->findTarget($request);
+        if ($target) {
+            return $target;
+        }
+
+        if ($this->fileTargetCreator && $this->store->exists($request->getTarget()->toString())) {
+            return $this->createTargetFromFile($request);
+        }
+
+        throw new \Exception("Could not route [{$request->getTarget()}]");
+    }
+
+    /**
+     * @param Request $request
+     * @return null|Target
+     * @throws \Exception
+     */
+    private function findTarget(Request $request) {
         $currentTarget = new Path();
 
         foreach ($request->getTarget() as $node) {
@@ -57,30 +77,51 @@ class StaticRouter implements Router {
 
             if ($this->store->exists($filePath)) {
                 $fullClassName = $this->namespace . '\\' . implode('\\', $node->toArray());
-                $object = $this->factory->getInstance($fullClassName);
+                return $this->createTargetFromClass($fullClassName, $currentTarget, $request);
+            }
 
-                $nextRequest = new Request(
-                    $currentTarget,
-                    new Path($request->getTarget()->slice($currentTarget->count())->toArray()),
-                    $request->getMethod(),
-                    $request->getArguments()->copy()
-                );
+            $node = $currentTarget->copy();
+            $pattern = $node . '/' . self::PLACEHOLDER_PREFIX . '*.php';
+            $matching = $this->store->find($pattern);
 
-                if ($object instanceof Responding) {
-                    return new RespondingTarget($nextRequest, $object);
-                } else if ($currentTarget->count() == $request->getTarget()->count()) {
-                    return new ObjectTarget($nextRequest, $object, $this->factory);
-                } else {
-                    throw new \Exception("[$fullClassName] needs to implement Responding");
-                }
+            if (count($matching) > 1) {
+                throw new \Exception('Too many placeholders: [' . implode(', ', $matching) . ']');
+            }
+
+            if ($matching) {
+                $path = explode('/', substr($matching[0], 0, -4));
+                $fullClassName = $this->namespace . '\\' . implode('\\', $path);
+
+                $key = lcfirst(substr(end($path), strlen(self::PLACEHOLDER_PREFIX), -strlen($this->suffix)));
+
+                $arguments = $request->getArguments()->copy();
+                $arguments->set($key, $request->getTarget()->get($currentTarget->count()));
+                $subRequest = new Request($request->getContext(), $request->getTarget(), $request->getMethod(), $arguments);
+
+                return $this->createTargetFromClass($fullClassName, $currentTarget, $subRequest);
             }
         }
 
-        if ($this->fileTargetCreator && $this->store->exists($request->getTarget()->toString())) {
-            return $this->createTargetFromFile($request);
-        }
+        return null;
+    }
 
-        throw new \Exception("Could not route [{$request->getTarget()}]");
+    private function createTargetFromClass($fullClassName, Path $currentTarget, Request $request) {
+        $object = $this->factory->getInstance($fullClassName);
+
+        $nextRequest = new Request(
+            $currentTarget,
+            new Path($request->getTarget()->slice($currentTarget->count())->toArray()),
+            $request->getMethod(),
+            $request->getArguments()->copy()
+        );
+
+        if ($object instanceof Responding) {
+            return new RespondingTarget($nextRequest, $object);
+        } else if ($currentTarget->count() == $request->getTarget()->count()) {
+            return new ObjectTarget($nextRequest, $object, $this->factory);
+        } else {
+            throw new \Exception("[$fullClassName] needs to implement Responding");
+        }
     }
 
     /**

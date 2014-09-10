@@ -63,6 +63,38 @@ class RouteToFilesTest extends Specification {
         $this->thenTheException_ShouldBeThrown('[not\foo\HereClass] needs to implement Responding');
     }
 
+    function testTargetIsPlaceholder() {
+        $this->givenTheBaseNamespaceIs('placeholder');
+        $this->givenARespondingClass_In_Returning('placeholder\foo\xxTargetClass', 'foo',
+            '$request->getArguments()->get("target")');
+        $this->request->givenTheRequestHasTheTarget('foo/something');
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith("something");
+    }
+
+    function testTooManyPlaceholder() {
+        $this->givenTheBaseNamespaceIs('placeholder');
+        $this->givenARespondingClass_In_Returning('placeholder\foo\xxOneClass', 'foo', '');
+        $this->givenARespondingClass_In_Returning('placeholder\foo\xxTwoClass', 'foo', '');
+        $this->request->givenTheRequestHasTheTarget('foo/something');
+
+        $this->whenITryToRouteTheRequest();
+        $this->thenTheException_ShouldBeThrown('Too many placeholders: [foo/xxOneClass.php, foo/xxTwoClass.php]');
+    }
+
+    function testPlaceholderOnTheWay() {
+        $this->markTestIncomplete();
+
+        $this->givenTheBaseNamespaceIs('placeholder');
+        $this->givenARespondingClass_In_Returning('placeholder\xxContainerClass', 'foo',
+            '$request->getArguments()->get("container")');
+        $this->request->givenTheRequestHasTheTarget('foo/something');
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith("foo");
+    }
+
     function testTargetIsFile() {
         $this->givenAFile_WithContent('file/foo/bar', 'Hello again');
         $this->request->givenTheRequestHasTheTarget('file/foo/bar');
