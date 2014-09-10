@@ -58,53 +58,69 @@ class StaticRouter implements Router {
         throw new \Exception("Could not route [{$request->getTarget()}]");
     }
 
-    /**
-     * @param Request $request
-     * @return null|Target
-     * @throws \Exception
-     */
     private function findTarget(Request $request) {
         $currentTarget = new Path();
 
         foreach ($request->getTarget() as $nodeName) {
             $currentTarget->append($nodeName);
 
-            $node = $currentTarget->copy();
-            $className = ucfirst($node->pop()) . $this->suffix;
-            $node->append($className);
-
-            $filePath = $node . '.php';
-
-            if ($this->store->exists($filePath)) {
-                $fullClassName = $this->namespace . '\\' . implode('\\', $node->toArray());
-                return $this->createTargetFromClass($fullClassName, $currentTarget, $request);
+            $target = $this->findNamedTarget($request, $currentTarget);
+            if ($target) {
+                return $target;
             }
 
-            $node = $currentTarget->copy();
-            $currentNode = $node->pop();
-            $node->append(self::PLACEHOLDER_PREFIX . '*.php');
-            $pattern = $node->toString();
-            $matching = $this->store->find($pattern);
-
-            if (count($matching) > 1) {
-                throw new \Exception('Too many placeholders: [' . implode(', ', $matching) . ']');
-            }
-
-            if ($matching) {
-                $path = explode('/', substr($matching[0], 0, -4));
-                $fullClassName = $this->namespace . '\\' . implode('\\', $path);
-
-                $key = lcfirst(substr(end($path), strlen(self::PLACEHOLDER_PREFIX), -strlen($this->suffix)));
-
-                $arguments = $request->getArguments()->copy();
-                $arguments->set($key, $currentNode);
-                $subRequest = new Request($request->getContext(), $request->getTarget(), $request->getMethod(), $arguments);
-
-                return $this->createTargetFromClass($fullClassName, $currentTarget, $subRequest);
+            $target = $this->findPlaceholderTarget($request, $currentTarget);
+            if ($target) {
+                return $target;
             }
         }
 
         return null;
+    }
+
+    private function findNamedTarget(Request $request, Path $currentTarget) {
+        $node = $currentTarget->copy();
+        $className = ucfirst($node->pop()) . $this->suffix;
+        $node->append($className);
+
+        $filePath = $node . '.php';
+
+        if ($this->store->exists($filePath)) {
+            $fullClassName = $this->namespace . '\\' . implode('\\', $node->toArray());
+            return $this->createTargetFromClass($fullClassName, $currentTarget, $request);
+        }
+        return null;
+    }
+
+    private function findPlaceholderTarget(Request $request, Path $currentTarget) {
+        $node = $currentTarget->copy();
+        $currentNode = $node->pop();
+        $node->append(self::PLACEHOLDER_PREFIX . '*.php');
+        $pattern = $node->toString();
+        $matching = $this->store->find($pattern);
+
+        if (count($matching) > 1) {
+            throw new \Exception('Too many placeholders: [' . implode(', ', $matching) . ']');
+        }
+
+        if ($matching) {
+            $path = explode('/', substr($matching[0], 0, -4));
+            $fullClassName = $this->namespace . '\\' . implode('\\', $path);
+
+            $subRequest = $this->setArgumentToPlaceholderKey($request, $path, $currentNode);
+
+            return $this->createTargetFromClass($fullClassName, $currentTarget, $subRequest);
+        }
+        return null;
+    }
+
+    private function setArgumentToPlaceholderKey(Request $request, array $path, $currentNode) {
+        $key = lcfirst(substr(end($path), strlen(self::PLACEHOLDER_PREFIX), -strlen($this->suffix)));
+
+        $arguments = $request->getArguments()->copy();
+        $arguments->set($key, $currentNode);
+        $subRequest = new Request($request->getContext(), $request->getTarget(), $request->getMethod(), $arguments);
+        return $subRequest;
     }
 
     private function createTargetFromClass($fullClassName, Path $currentTarget, Request $request) {
@@ -132,7 +148,6 @@ class StaticRouter implements Router {
     public function setFileTargetCreator($targetCreator) {
         $this->fileTargetCreator = $targetCreator;
     }
-
     /**
      * @param Request $request
      * @return CallbackTarget|ObjectTarget|RespondingTarget
