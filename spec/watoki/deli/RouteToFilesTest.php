@@ -107,6 +107,24 @@ class RouteToFilesTest extends Specification {
         $this->thenTheTargetShouldRespondWith('file/foo/bar -> Hello again');
     }
 
+    function testTargetIsFileAndClass() {
+        $this->givenAnObjectFromAFileIsCreatedWith(function (Request $r, File $f) {
+            return new CallbackTarget($r, function () use ($f) {
+                return $f->content;
+            });
+        });
+
+        $this->givenAFile_WithContent('foo/bar', 'The file');
+
+        $this->givenTheBaseNamespaceIs('both');
+        $this->givenARespondingClass_In_Returning('both\foo\BarClass', 'foo', '"The class"');
+
+        $this->request->givenTheRequestHasTheTarget('foo/bar');
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith('The class');
+    }
+
     function testTargetDoesNotExist() {
         $this->request->givenTheRequestHasTheTarget('non/existing');
         $this->whenITryToRouteTheRequest();
