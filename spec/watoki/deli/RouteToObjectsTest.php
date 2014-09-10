@@ -70,6 +70,28 @@ class RouteToObjectsTest extends Specification {
         $this->thenTheResponseShouldBe('this');
     }
 
+    function testInvokeHooks() {
+        $this->givenTheClass_WithTheBody('InvokeHooks', '
+            public function before($request) {
+                return new \\watoki\\deli\\Request(
+                    new \\watoki\\deli\\Path(),
+                    new \\watoki\\deli\\Path(),
+                    "else"
+                );
+            }
+            public function doElse(\\watoki\\deli\\Request $r) {
+                return "Else";
+            }
+            public function after($response) {
+                return "Something " . $response;
+            }
+        ');
+        $this->request->givenTheRequestHasTheMethod('something');
+
+        $this->whenIGetTheResponseFromTheTarget();
+        $this->thenTheResponseShouldBe('Something Else');
+    }
+
     function testArgumentWithNameRequest() {
         $this->givenTheClass_WithTheBody('ArgumentWithNameRequest', '
             public function doThis($request) {
