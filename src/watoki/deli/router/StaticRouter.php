@@ -66,8 +66,8 @@ class StaticRouter implements Router {
     private function findTarget(Request $request) {
         $currentTarget = new Path();
 
-        foreach ($request->getTarget() as $node) {
-            $currentTarget->append($node);
+        foreach ($request->getTarget() as $nodeName) {
+            $currentTarget->append($nodeName);
 
             $node = $currentTarget->copy();
             $className = ucfirst($node->pop()) . $this->suffix;
@@ -81,7 +81,9 @@ class StaticRouter implements Router {
             }
 
             $node = $currentTarget->copy();
-            $pattern = $node . '/' . self::PLACEHOLDER_PREFIX . '*.php';
+            $currentNode = $node->pop();
+            $node->append(self::PLACEHOLDER_PREFIX . '*.php');
+            $pattern = $node->toString();
             $matching = $this->store->find($pattern);
 
             if (count($matching) > 1) {
@@ -95,7 +97,7 @@ class StaticRouter implements Router {
                 $key = lcfirst(substr(end($path), strlen(self::PLACEHOLDER_PREFIX), -strlen($this->suffix)));
 
                 $arguments = $request->getArguments()->copy();
-                $arguments->set($key, $request->getTarget()->get($currentTarget->count()));
+                $arguments->set($key, $currentNode);
                 $subRequest = new Request($request->getContext(), $request->getTarget(), $request->getMethod(), $arguments);
 
                 return $this->createTargetFromClass($fullClassName, $currentTarget, $subRequest);

@@ -84,10 +84,8 @@ class RouteToFilesTest extends Specification {
     }
 
     function testPlaceholderOnTheWay() {
-        $this->markTestIncomplete();
-
         $this->givenTheBaseNamespaceIs('placeholder');
-        $this->givenARespondingClass_In_Returning('placeholder\xxContainerClass', 'foo',
+        $this->givenARespondingClass_In_Returning('placeholder\xxContainerClass', '',
             '$request->getArguments()->get("container")');
         $this->request->givenTheRequestHasTheTarget('foo/something');
 
@@ -172,7 +170,7 @@ class RouteToFilesTest extends Specification {
             }";
         eval($code);
 
-        $fileName = $folder . '/' . $name .'.php';
+        $fileName = ($folder ? $folder . '/' : '') . $name .'.php';
         $this->givenAFile_WithContent($fileName, '<?php ' . $code);
     }
 
