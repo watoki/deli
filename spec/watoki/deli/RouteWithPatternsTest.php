@@ -63,6 +63,14 @@ class RouteWithPatternsTest extends Specification {
         $this->thenResponseShouldBe('third');
     }
 
+    function testNotMatching() {
+        $this->givenISetATargetForThePath_Responding('foo/bar', 'not');
+        $this->request->givenTheRequestHasTheTarget('foo/baz');
+
+        $this->whenITryToRouteTheRequest();
+        $this->thenAnException_ShouldBeThrown('Could not find a path matching [foo/baz]');
+    }
+
     ############### SET-UP #################
 
     /** @var DynamicRouter */
