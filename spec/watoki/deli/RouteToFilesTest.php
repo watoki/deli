@@ -6,6 +6,7 @@ use watoki\deli\Request;
 use watoki\deli\router\StaticRouter;
 use watoki\deli\Target;
 use watoki\deli\target\CallbackTarget;
+use watoki\scrut\ExceptionFixture;
 use watoki\scrut\Specification;
 use watoki\stores\adapter\FileStoreAdapter;
 use watoki\stores\file\FileStore;
@@ -15,6 +16,7 @@ use watoki\stores\memory\SerializerRepository;
 
 /**
  * @property RequestFixture request <-
+ * @property ExceptionFixture try <-
  */
 class RouteToFilesTest extends Specification {
 
@@ -60,7 +62,7 @@ class RouteToFilesTest extends Specification {
         $this->request->givenTheRequestHasTheTarget('foo/here/target');
 
         $this->whenITryToRouteTheRequest();
-        $this->thenTheException_ShouldBeThrown('[not\foo\HereClass] needs to implement Responding');
+        $this->try->thenTheException_ShouldBeThrown('[not\foo\HereClass] needs to implement Responding');
     }
 
     function testTargetIsFile() {
@@ -98,7 +100,7 @@ class RouteToFilesTest extends Specification {
     function testTargetDoesNotExist() {
         $this->request->givenTheRequestHasTheTarget('non/existing');
         $this->whenITryToRouteTheRequest();
-        $this->thenTheException_ShouldBeThrown('Could not route [non/existing]');
+        $this->try->thenTheException_ShouldBeThrown('Could not route [non/existing]');
     }
 
     ###################### SET-UP #########################
@@ -112,9 +114,6 @@ class RouteToFilesTest extends Specification {
 
     /** @var FileStore */
     private $file;
-
-    /** @var null|\Exception */
-    private $caught;
 
     /** @var callable */
     private $fileObject;
@@ -170,27 +169,18 @@ class RouteToFilesTest extends Specification {
         $this->fileObject = $callable;
     }
 
-    private function whenIRouteTheRequest() {
+    public function whenIRouteTheRequest() {
         $router = new StaticRouter($this->factory, $this->file, $this->namespace, $this->suffix);
         $router->setFileTargetCreator($this->fileObject);
         $this->target = $router->route($this->request->request);
     }
 
     private function whenITryToRouteTheRequest() {
-        try {
-            $this->whenIRouteTheRequest();
-        } catch (\Exception $e) {
-            $this->caught = $e;
-        }
+        $this->try->tryTo(array($this, 'whenIRouteTheRequest'));
     }
 
     private function thenTheTargetShouldRespondWith($string) {
         $this->assertEquals($string, $this->target->respond());
-    }
-
-    private function thenTheException_ShouldBeThrown($message) {
-        $this->assertNotNull($this->caught);
-        $this->assertEquals($message, $this->caught->getMessage());
     }
 
 } 

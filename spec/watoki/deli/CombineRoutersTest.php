@@ -7,11 +7,14 @@ use watoki\deli\router\DynamicRouter;
 use watoki\deli\router\MultiRouter;
 use watoki\deli\target\CallbackTarget;
 use watoki\deli\Target;
+use watoki\scrut\ExceptionFixture;
 use watoki\scrut\Specification;
 
 /**
  * Different routers (e.g. dynamic and static) can be combined using the MultiRouter. The added routers
  * will be tried in the order they were added.
+ *
+ * @property ExceptionFixture try <-
  */
 class CombineRoutersTest extends Specification {
 
@@ -33,7 +36,7 @@ class CombineRoutersTest extends Specification {
 
     function testNoRouterSucceeds() {
         $this->whenITryToRoute('some/non/existent');
-        $this->thenTheException_ShouldBeThrown('Could not route [some/non/existent]');
+        $this->try->thenTheException_ShouldBeThrown('Could not route [some/non/existent]');
     }
 
     ########################### SET-UP ###########################
@@ -43,9 +46,6 @@ class CombineRoutersTest extends Specification {
 
     /** @var Target */
     private $target;
-
-    /** @var null|\Exception */
-    private $caught;
 
     private function givenAMultiRouter() {
         $this->router = new MultiRouter();
@@ -62,16 +62,12 @@ class CombineRoutersTest extends Specification {
     /**
      * @param $path
      */
-    private function whenIRoute($path) {
+    public function whenIRoute($path) {
         $this->target = $this->router->route(new Request(new Path(), Path::fromString($path)));
     }
 
     private function whenITryToRoute($path) {
-        try {
-            $this->whenIRoute($path);
-        } catch (\Exception $e) {
-            $this->caught = $e;
-        }
+        $this->try->tryTo(array($this, 'whenIRoute'), array($path));
     }
 
     /**
@@ -79,11 +75,6 @@ class CombineRoutersTest extends Specification {
      */
     private function thenTheTargetShouldRespond($str) {
         $this->assertEquals($str, $this->target->respond());
-    }
-
-    private function thenTheException_ShouldBeThrown($message) {
-        $this->assertNotNull($this->caught);
-        $this->assertEquals($message, $this->caught->getMessage());
     }
 
 } 
