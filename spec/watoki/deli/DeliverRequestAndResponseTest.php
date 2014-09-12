@@ -3,6 +3,7 @@ namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
 use spec\watoki\deli\fixtures\TestDelivery;
+use watoki\deli\Delivery;
 use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\router\DynamicRouter;
@@ -50,16 +51,16 @@ class DeliverRequestAndResponseTest extends Specification {
 
     function testCatchExceptions() {
         $this->given_IsRoutedToARespondingClass_ThatRespondsWith('my/path', 'CatchExceptions',
-            'throw new \Exception("Something went wrong");');
+            'throw new \RuntimeException("Something went wrong");');
         $this->request->givenTheRequestHasTheTarget('my/path');
 
         $this->whenIRunTheDelivery();
-        $this->thenTheResponseShouldBe('Error: Something went wrong');
+        $this->thenTheResponseShouldContain('RuntimeException: Something went wrong');
     }
 
     function testCatchFatalErrors() {
         $this->whenIExecute('fixtures/fatal.php');
-        $this->thenTheOutputShouldStartWith('Error: Call to undefined function causeFatalError()');
+        $this->thenTheOutputShouldStartWith('Exception: Call to undefined function causeFatalError()');
     }
 
     ######################### SET-UP #########################
@@ -67,10 +68,13 @@ class DeliverRequestAndResponseTest extends Specification {
     /** @var DynamicRouter */
     private $router;
 
-    /** @var TestDelivery */
+    /** @var Delivery */
     private $delivery;
 
     private $outputString;
+
+    /** @var TestDelivery */
+    private $test;
 
     protected function setUp() {
         parent::setUp();
@@ -91,12 +95,17 @@ class DeliverRequestAndResponseTest extends Specification {
     }
 
     public function whenIRunTheDelivery() {
-        $this->delivery = new TestDelivery($this->router, $this->request->request);
+        $this->test = new TestDelivery($this->request->request);
+        $this->delivery = new Delivery($this->router, $this->test, $this->test);
         $this->delivery->run();
     }
 
     public function thenTheResponseShouldBe($string) {
-        $this->assertEquals($string, $this->delivery->response);
+        $this->assertEquals($string, $this->test->response);
+    }
+
+    private function thenTheResponseShouldContain($string) {
+        $this->assertContains($string, $this->test->response);
     }
 
     private function whenIExecute($file) {

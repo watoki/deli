@@ -1,18 +1,26 @@
 <?php
 namespace watoki\deli;
 
-abstract class Delivery {
+class Delivery {
 
     /** @var Router */
     private $router;
 
-    public function __construct(Router $router) {
+    /** @var RequestBuilder */
+    private $builder;
+
+    /** @var ResponseDeliverer */
+    private $deliverer;
+
+    public function __construct(Router $router, RequestBuilder $builder, ResponseDeliverer $deliverer) {
         $this->router = $router;
+        $this->builder = $builder;
+        $this->deliverer = $deliverer;
     }
 
     public function run() {
         try {
-            $request = $this->fetch();
+            $request = $this->builder->build();
             $this->catchErrors($request);
 
             $target = $this->router->route($request);
@@ -21,7 +29,7 @@ abstract class Delivery {
             $response = $this->error($e);
         }
 
-        $this->deliver($response);
+        $this->deliverer->deliver($response);
     }
 
     private function catchErrors() {
@@ -34,27 +42,18 @@ abstract class Delivery {
         $error = error_get_last();
         if (in_array($error['type'], array(E_ERROR, E_PARSE, E_USER_ERROR, E_RECOVERABLE_ERROR))) {
             $message = "{$error['message']} in {$error['file']}:{$error['line']}";
-            $this->deliver($this->error(new \Exception($message)));
+            $this->deliverer->deliver($this->error(new \Exception($message)));
         }
     }
-
-    /**
-     * @return Request
-     */
-    abstract protected function fetch();
-
-    /**
-     * @param mixed|Response $response
-     * @return null
-     */
-    abstract protected function deliver($response);
 
     /**
      * Is called if an error is caught while running the delivery
      *
      * @param \Exception $exception
-     * @return mixed|Response
+     * @return mixed
      */
-    abstract protected function error(\Exception $exception);
+    protected function error(\Exception $exception) {
+        return get_class($exception) . ': ' . $exception->getMessage() . "\n" . $exception->getTraceAsString();
+    }
 
 } 

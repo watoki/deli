@@ -1,54 +1,41 @@
 <?php
 namespace spec\watoki\deli\fixtures;
 
-use watoki\deli\Delivery;
 use watoki\deli\Request;
-use watoki\deli\Response;
-use watoki\deli\Router;
+use watoki\deli\RequestBuilder;
+use watoki\deli\ResponseDeliverer;
 
-class TestDelivery extends Delivery {
+class TestDelivery implements ResponseDeliverer, RequestBuilder {
 
-    /** @var \watoki\deli\Request */
     public $request;
 
-    public $response = false;
+    public $response;
 
-    private $echoResponse;
+    private $onDeliver;
 
-    public function __construct(Router $router, Request $request) {
-        parent::__construct($router);
+    function __construct(Request $request) {
         $this->request = $request;
     }
 
-    public function echoResponse() {
-        $this->echoResponse = true;
+    /**
+     * @param mixed $response
+     * @return null
+     */
+    public function deliver($response) {
+        $this->response = $response;
+        if ($this->onDeliver) {
+            call_user_func($this->onDeliver, $response);
+        }
     }
 
     /**
      * @return Request
      */
-    protected function fetch() {
+    public function build() {
         return $this->request;
     }
 
-    /**
-     * @param mixed|Response $response
-     * @return null
-     */
-    protected function deliver($response) {
-        if ($this->echoResponse && is_string($response)) {
-            echo $response;
-        }
-        $this->response = $response;
-    }
-
-    /**
-     * Is called if an error is caught while running the delivery
-     *
-     * @param \Exception $exception
-     * @return mixed|Response
-     */
-    protected function error(\Exception $exception) {
-        return 'Error: ' . $exception->getMessage();
+    public function onDeliver(callable $callback) {
+        $this->onDeliver = $callback;
     }
 }

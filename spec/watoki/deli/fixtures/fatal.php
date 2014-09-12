@@ -1,6 +1,7 @@
 <?php
 
 use spec\watoki\deli\fixtures\TestDelivery;
+use watoki\deli\Delivery;
 use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\router\DynamicRouter;
@@ -13,6 +14,9 @@ $router->set(new Path(), CallbackTarget::factory(function () {
     causeFatalError();
 }));
 
-$delivery = new TestDelivery($router, new Request(new Path(), new Path()));
-$delivery->echoResponse();
+$test = new TestDelivery(new Request(new Path(), new Path()));
+$test->onDeliver(function ($response) {
+    echo $response;
+});
+$delivery = new Delivery($router, $test, $test);
 $delivery->run();
