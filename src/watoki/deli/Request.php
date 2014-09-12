@@ -52,4 +52,37 @@ class Request {
         return $this->arguments;
     }
 
+    /**
+     * @param \watoki\deli\Path $context
+     */
+    public function setContext($context) {
+        $this->context = $context;
+    }
+
+    /**
+     * @param string $method
+     */
+    public function setMethod($method) {
+        $this->method = $method;
+    }
+
+    /**
+     * @param \watoki\deli\Path $target
+     */
+    public function setTarget($target) {
+        $this->target = $target;
+    }
+
+    /**
+     * @return static
+     */
+    public function copy() {
+        return new Request(
+            $this->context->copy(),
+            $this->target->copy(),
+            $this->method,
+            $this->arguments->copy()
+        );
+    }
+
 }

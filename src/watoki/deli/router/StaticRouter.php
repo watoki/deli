@@ -9,14 +9,14 @@ use watoki\deli\target\ObjectTarget;
 use watoki\deli\Target;
 use watoki\deli\target\RespondingTarget;
 use watoki\factory\Factory;
-use watoki\stores\file\FileStore;
+use watoki\stores\file\raw\RawFileStore;
 
 class StaticRouter implements Router {
 
     const DEFAULT_SUFFIX = 'Class';
 
-    /** @var FileStore */
-    private $store;
+    /** @var RawFileStore */
+    protected $store;
 
     /** @var string */
     private $namespace;
@@ -24,17 +24,24 @@ class StaticRouter implements Router {
     /** @var string */
     private $suffix;
 
-    /** @var \watoki\factory\Factory */
+    /** @var Factory */
     private $factory;
 
     /** @var callable */
     private $fileTargetCreator;
 
-    function __construct(Factory $factory, FileStore $store, $namespace, $suffix = self::DEFAULT_SUFFIX) {
+    function __construct(Factory $factory, RawFileStore $store, $namespace, $suffix = self::DEFAULT_SUFFIX) {
         $this->factory = $factory;
         $this->store = $store;
         $this->namespace = $namespace;
         $this->suffix = $suffix;
+    }
+
+    /**
+     * @param callable $targetCreator Returns a Target given the Request and a File
+     */
+    public function setFileTargetCreator($targetCreator) {
+        $this->fileTargetCreator = $targetCreator;
     }
 
     /**
@@ -48,18 +55,14 @@ class StaticRouter implements Router {
             return $target;
         }
 
-        if ($this->fileTargetCreator && $this->store->exists($this->getTargetFileName($request))) {
-            return $this->createTargetFromFile($request);
+        if ($this->fileTargetCreator) {
+            $found = $this->existingFile($request);
+            if ($found) {
+                return $this->createTargetFromFile($request, $found);
+            }
         }
 
         throw new \Exception("Could not route [{$request->getTarget()}]");
-    }
-
-    /**
-     * @param callable $targetCreator Returns a Target given the Request and a File
-     */
-    public function setFileTargetCreator($targetCreator) {
-        $this->fileTargetCreator = $targetCreator;
     }
 
     private function findTarget(Request $request) {
@@ -110,23 +113,24 @@ class StaticRouter implements Router {
         }
     }
 
-    private function createTargetFromFile(Request $request) {
-        $nextRequest = new Request(
-            $request->getTarget()->copy(),
-            new Path(),
-            $request->getMethod(),
-            $request->getArguments()->copy()
-        );
+    private function createTargetFromFile(Request $request, $file) {
+        $nextRequest = $request->copy();
+        $nextRequest->setContext($request->getTarget()->copy());
+        $nextRequest->setTarget(new Path());
 
         $callable = $this->fileTargetCreator;
-        return $callable($nextRequest, $this->store->read($this->getTargetFileName($request)));
+        return $callable($nextRequest, $this->store->read($file));
     }
 
     /**
      * @param Request $request
-     * @return string
+     * @return string|null
      */
-    protected function getTargetFileName(Request $request) {
-        return $request->getTarget()->toString();
+    protected function existingFile(Request $request) {
+        $file = $request->getTarget()->toString();
+        if ($this->store->exists($file)) {
+            return $file;
+        }
+        return null;
     }
 }
