@@ -55,12 +55,12 @@ class DeliverRequestAndResponseTest extends Specification {
         $this->request->givenTheRequestHasTheTarget('my/path');
 
         $this->whenIRunTheDelivery();
-        $this->thenTheResponseShouldContain('RuntimeException: Something went wrong');
+        $this->thenTheResponseShouldContain('my/path threw RuntimeException: Something went wrong');
     }
 
     function testCatchFatalErrors() {
         $this->whenIExecute('fixtures/fatal.php');
-        $this->thenTheOutputShouldStartWith('Exception: Call to undefined function causeFatalError()');
+        $this->thenTheOutputShouldStartWith('some/target threw Exception: Call to undefined function causeFatalError()');
     }
 
     ######################### SET-UP #########################

@@ -19,41 +19,46 @@ class Delivery {
     }
 
     public function run() {
+        $request = $this->builder->build();
+
         try {
-            $request = $this->builder->build();
             $this->catchErrors($request);
 
             $target = $this->router->route($request);
             $response = $target->respond();
         } catch (\Exception $e) {
-            $response = $this->error($e);
+            $response = $this->error($request, $e);
         }
 
         $this->deliverer->deliver($response);
     }
 
-    private function catchErrors() {
+    private function catchErrors(Request $request) {
         error_reporting(0);
         ini_set('display_errors', false);
-        register_shutdown_function(array($this, 'handleError'));
+        register_shutdown_function(array($this, 'handleError'), $request);
     }
 
-    public function handleError() {
+    public function handleError(Request $request) {
         $error = error_get_last();
         if (in_array($error['type'], array(E_ERROR, E_PARSE, E_USER_ERROR, E_RECOVERABLE_ERROR))) {
             $message = "{$error['message']} in {$error['file']}:{$error['line']}";
-            $this->deliverer->deliver($this->error(new \Exception($message)));
+            $this->deliverer->deliver($this->error($request, new \Exception($message)));
         }
     }
 
     /**
      * Is called if an error is caught while running the delivery
      *
+     * @param Request $request
      * @param \Exception $exception
      * @return mixed
      */
-    protected function error(\Exception $exception) {
-        return get_class($exception) . ': ' . $exception->getMessage() . "\n" . $exception->getTraceAsString();
+    protected function error(Request $request, \Exception $exception) {
+        return $request->getTarget() . ' threw '
+        . get_class($exception) . ': '
+        . $exception->getMessage() . "\n"
+        . $exception->getTraceAsString();
     }
 
 } 
