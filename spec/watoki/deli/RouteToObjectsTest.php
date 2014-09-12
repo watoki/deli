@@ -79,17 +79,31 @@ class RouteToObjectsTest extends Specification {
                     "else"
                 );
             }
-            public function doElse(\\watoki\\deli\\Request $r) {
-                return "Else";
+            public function doElse() {
+                return "found";
             }
-            public function after($response) {
-                return "Something " . $response;
+            public function after($response, $request) {
+                return "Something " . $request->getMethod() . " " . $response;
             }
         ');
         $this->request->givenTheRequestHasTheMethod('something');
 
         $this->whenIGetTheResponseFromTheTarget();
-        $this->thenTheResponseShouldBe('Something Else');
+        $this->thenTheResponseShouldBe('Something else found');
+    }
+
+    function testEdgeCaseEmptyHooks() {
+        $this->givenTheClass_WithTheBody('EmptyHooks', '
+            public function before() {}
+            public function after() {}
+            public function doSomething() {
+                return "Something";
+            }
+        ');
+        $this->request->givenTheRequestHasTheMethod('something');
+
+        $this->whenIGetTheResponseFromTheTarget();
+        $this->thenTheResponseShouldBe('Something');
     }
 
     function testArgumentWithNameRequest() {

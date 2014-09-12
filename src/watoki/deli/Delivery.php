@@ -23,14 +23,17 @@ class Delivery {
 
         try {
             $this->catchErrors($request);
-
-            $target = $this->router->route($request);
-            $response = $target->respond();
+            $response = $this->getResponse($request);
         } catch (\Exception $e) {
             $response = $this->error($request, $e);
         }
 
         $this->deliverer->deliver($response);
+    }
+
+    protected function getResponse(Request $request) {
+        $target = $this->router->route($request);
+        return $target->respond();
     }
 
     private function catchErrors(Request $request) {

@@ -38,13 +38,19 @@ class ObjectTarget extends Target {
         $class = new \ReflectionClass($this->object);
 
         if ($class->hasMethod(self::BEFORE_METHOD)) {
-            $this->request = $class->getMethod(self::BEFORE_METHOD)->invokeArgs($this->object, array($this->request));
+            $newRequest = $class->getMethod(self::BEFORE_METHOD)->invokeArgs($this->object, array($this->request));
+            if ($newRequest) {
+                $this->request = $newRequest;
+            }
         }
 
         $response = $this->invoke($this->getMethodName());
 
         if ($class->hasMethod(self::AFTER_METHOD)) {
-            $response = $class->getMethod(self::AFTER_METHOD)->invokeArgs($this->object, array($response));
+            $newResponse = $class->getMethod(self::AFTER_METHOD)->invokeArgs($this->object, array($response, $this->request));
+            if ($newResponse) {
+                $response = $newResponse;
+            }
         }
 
         return $response;
@@ -56,16 +62,23 @@ class ObjectTarget extends Target {
 
     /**
      * @param $name
+     * @throws \BadMethodCallException If the method does not exist
      * @return mixed
      */
     protected function invoke($name) {
+        try {
+            $reflection = new \ReflectionMethod($this->object, $name);
+        } catch (\ReflectionException $e) {
+            $class = get_class($this->object);
+            throw new \BadMethodCallException("Method [$name] does not exist in [{$class}]");
+        }
+
         $arguments = $this->request->getArguments()->toArray();
         if (!array_key_exists('request', $arguments)) {
             $arguments['request'] = $this->request;
         }
 
         $injector = new Injector($this->factory);
-        $reflection = new \ReflectionMethod($this->object, $name);
         $args = $injector->injectMethodArguments($reflection, $arguments, $this->filterFactory);
 
         return $reflection->invokeArgs($this->object, $args);
