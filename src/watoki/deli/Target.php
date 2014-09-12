@@ -11,7 +11,7 @@ abstract class Target {
     }
 
     /**
-     * @return Response
+     * @return mixed
      */
     abstract function respond();
 

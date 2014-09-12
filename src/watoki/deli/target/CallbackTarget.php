@@ -2,7 +2,6 @@
 namespace watoki\deli\target;
 
 use watoki\deli\Request;
-use watoki\deli\Response;
 use watoki\deli\Target;
 use watoki\factory\Factory;
 
@@ -25,7 +24,7 @@ class CallbackTarget extends Target {
     }
 
     /**
-     * @return Response
+     * @return mixed
      */
     function respond() {
         return call_user_func($this->callback, $this->request);

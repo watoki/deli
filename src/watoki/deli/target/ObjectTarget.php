@@ -2,7 +2,6 @@
 namespace watoki\deli\target;
 
 use watoki\deli\Request;
-use watoki\deli\Response;
 use watoki\deli\Target;
 use watoki\factory\Factory;
 use watoki\factory\FilterFactory;
@@ -33,7 +32,7 @@ class ObjectTarget extends Target {
     }
 
     /**
-     * @return Response
+     * @return mixed
      */
     function respond() {
         $class = new \ReflectionClass($this->object);

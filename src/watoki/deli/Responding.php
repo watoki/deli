@@ -5,7 +5,7 @@ interface Responding {
 
     /**
      * @param Request $request
-     * @return Response
+     * @return mixed
      */
     public function respond(Request $request);
 

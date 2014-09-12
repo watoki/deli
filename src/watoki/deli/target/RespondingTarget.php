@@ -3,7 +3,6 @@ namespace watoki\deli\target;
 
 use watoki\deli\Request;
 use watoki\deli\Responding;
-use watoki\deli\Response;
 use watoki\deli\Target;
 use watoki\factory\Factory;
 
@@ -21,7 +20,7 @@ class RespondingTarget extends Target {
     }
 
     /**
-     * @return Response
+     * @return mixed
      */
     function respond() {
         return $this->object->respond($this->request);
