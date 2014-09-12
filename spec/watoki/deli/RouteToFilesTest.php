@@ -2,21 +2,19 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
+use spec\watoki\stores\FileStoreFixture;
 use watoki\deli\Request;
 use watoki\deli\router\StaticRouter;
 use watoki\deli\Target;
 use watoki\deli\target\CallbackTarget;
 use watoki\scrut\ExceptionFixture;
 use watoki\scrut\Specification;
-use watoki\stores\adapter\FileStoreAdapter;
-use watoki\stores\file\FileStore;
 use watoki\stores\file\raw\File;
-use watoki\stores\memory\MemoryStore;
-use watoki\stores\memory\SerializerRepository;
 
 /**
  * @property RequestFixture request <-
  * @property ExceptionFixture try <-
+ * @property FileStoreFixture file <-
  */
 class RouteToFilesTest extends Specification {
 
@@ -72,7 +70,7 @@ class RouteToFilesTest extends Specification {
             });
         });
 
-        $this->givenAFile_WithContent('file/foo/bar', 'Hello again');
+        $this->file->givenAFile_WithContent('file/foo/bar', 'Hello again');
         $this->request->givenTheRequestHasTheTarget('file/foo/bar');
 
         $this->whenIRouteTheRequest();
@@ -86,7 +84,7 @@ class RouteToFilesTest extends Specification {
             });
         });
 
-        $this->givenAFile_WithContent('foo/bar', 'The file');
+        $this->file->givenAFile_WithContent('foo/bar', 'The file');
 
         $this->givenTheBaseNamespaceIs('both');
         $this->givenARespondingClass_In_Returning('both\foo\BarClass', 'foo', '"The class"');
@@ -112,16 +110,8 @@ class RouteToFilesTest extends Specification {
     /** @var null|Target */
     private $target;
 
-    /** @var FileStore */
-    private $file;
-
     /** @var callable */
     private $fileObject;
-
-    protected function setUp() {
-        parent::setUp();
-        $this->file = new FileStoreAdapter(new MemoryStore(File::$CLASS, new SerializerRepository()));
-    }
 
     private function givenTheClassSuffixIs($string) {
         $this->suffix = $string;
@@ -158,11 +148,7 @@ class RouteToFilesTest extends Specification {
         eval($code);
 
         $fileName = ($folder ? $folder . '/' : '') . $name .'.php';
-        $this->givenAFile_WithContent($fileName, '<?php ' . $code);
-    }
-
-    private function givenAFile_WithContent($filename, $content) {
-        $this->file->create(new File($content), $filename);
+        $this->file->givenAFile_WithContent($fileName, '<?php ' . $code);
     }
 
     private function givenAnObjectFromAFileIsCreatedWith($callable) {
@@ -170,7 +156,7 @@ class RouteToFilesTest extends Specification {
     }
 
     public function whenIRouteTheRequest() {
-        $router = new StaticRouter($this->factory, $this->file, $this->namespace, $this->suffix);
+        $router = new StaticRouter($this->factory, $this->file->store, $this->namespace, $this->suffix);
         $router->setFileTargetCreator($this->fileObject);
         $this->target = $router->route($this->request->request);
     }
