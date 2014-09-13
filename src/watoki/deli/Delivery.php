@@ -3,6 +3,8 @@ namespace watoki\deli;
 
 class Delivery {
 
+    public static $errorReporting = 0;
+
     /** @var Router */
     private $router;
 
@@ -37,7 +39,7 @@ class Delivery {
     }
 
     private function catchErrors(Request $request) {
-        error_reporting(0);
+        error_reporting(self::$errorReporting);
         ini_set('display_errors', false);
         register_shutdown_function(array($this, 'handleError'), $request);
     }
