@@ -35,7 +35,10 @@ class TestDelivery implements ResponseDeliverer, RequestBuilder {
         return $this->request;
     }
 
-    public function onDeliver(callable $callback) {
+    /**
+     * @param callable $callback
+     */
+    public function onDeliver($callback) {
         $this->onDeliver = $callback;
     }
 }
