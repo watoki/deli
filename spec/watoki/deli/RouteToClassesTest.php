@@ -12,11 +12,16 @@ use watoki\scrut\Specification;
 use watoki\stores\file\raw\File;
 
 /**
+ * The `StaticRouter` maps Paths to classes relative to a root directory.
+ *
+ * It finds Responding classes on the way or at the target and any calls the "do" method of
+ * the target if it does not implement `Responding`.
+ *
  * @property RequestFixture request <-
  * @property ExceptionFixture try <-
  * @property FileStoreFixture file <-
  */
-class RouteToFilesTest extends Specification {
+class RouteToClassesTest extends Specification {
 
     protected function background() {
         $this->givenTheClassSuffixIs('Class');

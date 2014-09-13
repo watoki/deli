@@ -11,7 +11,7 @@ use watoki\scrut\ExceptionFixture;
 use watoki\scrut\Specification;
 
 /**
- * Different routers (e.g. dynamic and static) can be combined using the MultiRouter. The added routers
+ * Different routers (e.g. dynamic and static) can be combined using the `MultiRouter`. The added routers
  * will be tried in the order they were added.
  *
  * @property ExceptionFixture try <-

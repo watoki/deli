@@ -1,4 +1,4 @@
-#deli
+#deli [![Build Status](https://travis-ci.org/watoki/deli.png?branch=master)](https://travis-ci.org/watoki/deli)
 
 *deli* is an abstract delivery system for request/response type applications. It can be used as a base for web and
 CLI delivery systems such as [curir] and [commander].

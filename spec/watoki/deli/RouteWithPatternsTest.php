@@ -10,7 +10,7 @@ use watoki\deli\Target;
 use watoki\scrut\Specification;
 
 /**
- * The DynamicRouter allows partial paths and patterns which are matched against the
+ * The `DynamicRouter` allows partial paths and patterns which are matched against the
  * target of the Request.
  *
  * @property RequestFixture request <-

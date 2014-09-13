@@ -14,7 +14,7 @@ use watoki\scrut\Specification;
 
 /**
  * This describes the basic set-up which gets the Response from a Target, found using a
- * Router which uses a TargetFactory to create the Target. There are different kind of
+ * Router which uses a `TargetFactory` to create the Target. There are different kind of
  * Targets with different sources for the Response (e.g. closure, objects implementing the
  * Responding interface or plain objects).
  *
