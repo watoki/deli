@@ -53,6 +53,14 @@ class RouteWithPatternsTest extends Specification {
         $this->thenTheRoutedRequestArgument_ShouldBe('name', 'baz');
     }
 
+    function testEdgeCasePatternWithPlaceholderAndShorterTarget() {
+        $this->givenISetATargetForThePath('foo/{name}/bar');
+        $this->request->givenTheRequestHasTheTarget('foo');
+
+        $this->whenITryToRouteTheRequest();
+        $this->thenAnException_ShouldBeThrown('Could not find a path matching [foo]');
+    }
+
     function testSpecificOverGeneral() {
         $this->givenISetATargetForThePath_Responding('foo/bar', 'first');
         $this->givenISetATargetForThePath_Responding('foo/{bar}/baz', 'second');

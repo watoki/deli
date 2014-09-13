@@ -55,7 +55,7 @@ class Request {
     /**
      * @param \watoki\deli\Path $context
      */
-    public function setContext($context) {
+    public function setContext(Path $context) {
         $this->context = $context;
     }
 

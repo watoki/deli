@@ -37,30 +37,35 @@ class DynamicRouter implements Router {
         });
     }
 
+    public function setPath($string, TargetFactory $factory) {
+        $this->set(Path::fromString($string), $factory);
+    }
+
     /**
      * @param Path $path
      * @param Request $request
      * @return null|Request Null if no match
      */
     private function match(Path $path, Request $request) {
+        $nextRequest = $request->copy();
         $target = $request->getTarget();
-        $arguments = $request->getArguments()->copy();
 
         for ($i = 0; $i < $path->count(); $i++) {
             $p = $path->get($i);
-            if (substr($p, 0, 1) == '{' && substr($p, -1) == '}') {
+            if ($i >= $target->count()) {
+                return null;
+            } else if (substr($p, 0, 1) == '{' && substr($p, -1) == '}') {
                 $key = substr($p, 1, -1);
                 $value = $target->get($i);
-                $arguments->set($key, $value);
+                $nextRequest->getArguments()->set($key, $value);
             } else if ($target->get($i) != $p) {
                 return null;
             }
         }
 
-        return new Request(
-            new Path($target->slice(0, $i)->toArray()),
-            new Path($target->slice($i)->toArray()),
-            $request->getMethod(),
-            $arguments);
+        $nextRequest->setContext(new Path($target->slice(0, $i)->toArray()));
+        $nextRequest->setTarget(new Path($target->slice($i)->toArray()));
+
+        return $nextRequest;
     }
 }
