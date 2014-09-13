@@ -11,6 +11,9 @@ class NoneRouter implements Router {
     /** @var TargetFactory */
     private $targetFactory;
 
+    /**
+     * @param TargetFactory $factory
+     */
     function __construct(TargetFactory $factory) {
         $this->targetFactory = $factory;
     }
