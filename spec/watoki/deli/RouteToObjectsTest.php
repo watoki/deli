@@ -142,7 +142,7 @@ class RouteToObjectsTest extends Specification {
 
         $this->whenIGetTheResponseFromTheTarget();
 
-        $this->thenTheResponseShouldBe('[["this"],false,1.4,1,"2001-12-31T12:00:00+01:00","2012-12-31T00:00:00+01:00"]');
+        $this->thenTheResponseShouldBe('[["this"],false,1.4,1,"2001-12-31T12:00:00+00:00","2012-12-31T00:00:00+00:00"]');
     }
 
     function testInvalidTypeHint() {
@@ -179,6 +179,11 @@ class RouteToObjectsTest extends Specification {
     private $object;
 
     private $response;
+
+    protected function setUp() {
+        parent::setUp();
+        date_default_timezone_set('UTC');
+    }
 
     private function givenTheClass_WithTheBody($className, $body) {
         eval("class $className { $body }");
