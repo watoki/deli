@@ -63,7 +63,7 @@ class DynamicRouter implements Router {
             }
         }
 
-        $nextContext = $request->getContext();
+        $nextContext = $request->getContext()->copy();
         foreach (new Path($target->slice(0, $i)->toArray()) as $part) {
             $nextContext->append($part);
         }

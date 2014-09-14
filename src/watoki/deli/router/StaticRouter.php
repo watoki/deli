@@ -98,7 +98,7 @@ class StaticRouter implements Router {
         $object = $this->factory->getInstance($fullClassName);
 
         $nextRequest = $request->copy();
-        $nextContext = $request->getContext();
+        $nextContext = $request->getContext()->copy();
         foreach ($currentTarget as $targetPart) {
             $nextContext->append($targetPart);
         }
