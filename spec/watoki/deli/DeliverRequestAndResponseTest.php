@@ -27,13 +27,14 @@ class DeliverRequestAndResponseTest extends Specification {
      */
     function testCallbackTarget() {
         $this->given_IsRoutedToTheCallback('path/to/target', function (Request $r) {
-            return 'Hello ' . $r->getArguments()->get('name');
+            return 'Hello ' . $r->getArguments()->get('name') . ' from ' . $r->getContext();
         });
+        $this->request->givenTheRequestHasTheContext('my/context');
         $this->request->givenTheRequestHasTheTarget('path/to/target');
         $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
 
         $this->whenIRunTheDelivery();
-        $this->thenTheResponseShouldBe('Hello Homer');
+        $this->thenTheResponseShouldBe('Hello Homer from my/context/path/to/target');
     }
 
     /**
