@@ -74,9 +74,7 @@ class ObjectTarget extends Target {
         }
 
         $arguments = $this->request->getArguments()->toArray();
-        if (!array_key_exists('request', $arguments)) {
-            $arguments['request'] = $this->request;
-        }
+        $this->factory->setSingleton(get_class($this->request), $this->request);
 
         $injector = new Injector($this->factory);
         $args = $injector->injectMethodArguments($reflection, $arguments, $this->filterFactory);

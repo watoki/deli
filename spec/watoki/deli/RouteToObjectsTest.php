@@ -58,13 +58,13 @@ class RouteToObjectsTest extends Specification {
 
     function testInjectRequest() {
         $this->givenTheClass_WithTheBody('InjectRequest', '
-            public function doThis(\\watoki\\deli\\Request $request) {
-                return $request->getMethod();
+            public function doDa(\watoki\deli\Request $foo, \watoki\deli\Request $bar) {
+                return $foo->getMethod() . "ba" . $bar->getMethod();
             }
         ');
-        $this->request->givenTheRequestHasTheMethod('this');
+        $this->request->givenTheRequestHasTheMethod('da');
         $this->whenIGetTheResponseFromTheTarget();
-        $this->thenTheResponseShouldBe('this');
+        $this->thenTheResponseShouldBe('dabada');
     }
 
     function testInvokeHooks() {
@@ -101,18 +101,6 @@ class RouteToObjectsTest extends Specification {
 
         $this->whenIGetTheResponseFromTheTarget();
         $this->thenTheResponseShouldBe('Something');
-    }
-
-    function testArgumentWithNameRequest() {
-        $this->givenTheClass_WithTheBody('ArgumentWithNameRequest', '
-            public function doThis($request) {
-                return $request;
-            }
-        ');
-        $this->request->givenTheRequestHasTheMethod('this');
-        $this->request->givenTheRequestHasTheArgument_WithTheValue('request', 'that');
-        $this->whenIGetTheResponseFromTheTarget();
-        $this->thenTheResponseShouldBe('that');
     }
 
     function testFilterArguments() {
