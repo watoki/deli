@@ -34,11 +34,12 @@ class RouteToClassesTest extends Specification {
                 return "Found me at " . $request->getContext();
             }
         ');
+        $this->request->givenTheRequestHasTheContext('my/context');
         $this->request->givenTheRequestHasTheTarget('foo/bar/target');
         $this->request->givenTheRequestHasTheMethod('this');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Found me at foo/bar/target");
+        $this->thenTheTargetShouldRespondWith("Found me at my/context/foo/bar/target");
     }
 
     function testTargetIsARespondingClass() {

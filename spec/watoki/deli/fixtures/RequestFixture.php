@@ -15,6 +15,10 @@ class RequestFixture extends Fixture {
         $this->request = new Request(new Path(), new Path());
     }
 
+    public function givenTheRequestHasTheContext($pathString) {
+        $this->request->setContext(Path::fromString($pathString));
+    }
+
     public function givenTheRequestHasTheTarget($pathString) {
         $this->request->setTarget(Path::fromString($pathString));
     }
