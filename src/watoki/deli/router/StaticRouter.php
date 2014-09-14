@@ -97,12 +97,9 @@ class StaticRouter implements Router {
     private function createTargetFromClass($fullClassName, Request $request, Path $currentTarget) {
         $object = $this->factory->getInstance($fullClassName);
 
-        $nextRequest = new Request(
-            $currentTarget,
-            new Path($request->getTarget()->slice($currentTarget->count())->toArray()),
-            $request->getMethod(),
-            $request->getArguments()->copy()
-        );
+        $nextRequest = $request->copy();
+        $nextRequest->setContext($currentTarget);
+        $nextRequest->setTarget(new Path($request->getTarget()->slice($currentTarget->count())->toArray()));
 
         if ($object instanceof Responding) {
             return new RespondingTarget($nextRequest, $object);
