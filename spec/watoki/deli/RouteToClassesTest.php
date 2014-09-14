@@ -30,15 +30,15 @@ class RouteToClassesTest extends Specification {
     function testTargetIsPlainClass() {
         $this->givenTheBaseNamespaceIs('some\space');
         $this->givenAClass_In_WithTheBody('some\space\foo\bar\TargetClass', 'foo/bar', '
-            function doThis() {
-                return "Found me";
+            function doThis(\watoki\deli\Request $request) {
+                return "Found me at " . $request->getContext();
             }
         ');
         $this->request->givenTheRequestHasTheTarget('foo/bar/target');
         $this->request->givenTheRequestHasTheMethod('this');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Found me");
+        $this->thenTheTargetShouldRespondWith("Found me at foo/bar/target");
     }
 
     function testTargetIsARespondingClass() {
