@@ -23,7 +23,7 @@ use watoki\stores\file\raw\File;
  */
 class RouteToClassesTest extends Specification {
 
-    protected function background() {
+    public function background() {
         $this->givenTheClassSuffixIs('Class');
     }
 

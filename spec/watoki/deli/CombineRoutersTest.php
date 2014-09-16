@@ -18,7 +18,7 @@ use watoki\scrut\Specification;
  */
 class CombineRoutersTest extends Specification {
 
-    protected function background() {
+    public function background() {
         $this->givenAMultiRouter();
         $this->givenIHaveAddedARouterWhere_RespondsWith('some/path', 'Found one');
         $this->givenIHaveAddedARouterWhere_RespondsWith('some/other', 'Found two');
