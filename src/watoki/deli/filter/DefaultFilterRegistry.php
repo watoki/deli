@@ -1,10 +1,7 @@
 <?php
 namespace watoki\deli\filter;
  
-use watoki\factory\Filter;
-use watoki\factory\FilterFactory;
-
-class DefaultFilterFactory extends FilterFactory {
+class DefaultFilterRegistry extends FilterRegistry {
 
     public static $CLASS = __CLASS__;
 

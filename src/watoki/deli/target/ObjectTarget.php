@@ -1,13 +1,14 @@
 <?php
 namespace watoki\deli\target;
 
+use watoki\deli\filter\FilterRegistry;
 use watoki\deli\Request;
 use watoki\deli\Target;
 use watoki\factory\Factory;
-use watoki\factory\FilterFactory;
-use watoki\factory\Injector;
+use watoki\factory\MethodAnalyzer;
+use watoki\factory\Provider;
 
-class ObjectTarget extends Target {
+class ObjectTarget extends Target implements Provider {
 
     const BEFORE_METHOD = 'before';
 
@@ -18,13 +19,14 @@ class ObjectTarget extends Target {
     /** @var Factory */
     private $factory;
 
-    /** @var FilterFactory <- */
-    public $filterFactory;
+    /** @var FilterRegistry */
+    private $filters;
 
     function __construct(Request $request, $object, Factory $factory) {
         parent::__construct($request);
         $this->object = $object;
         $this->factory = $factory;
+        $this->filters = $factory->getInstance(FilterRegistry::$CLASS);
     }
 
     public static function factory(Factory $factory, $object) {
@@ -73,12 +75,33 @@ class ObjectTarget extends Target {
             throw new \BadMethodCallException("Method [$name] does not exist in [{$class}]");
         }
 
+        $factory = new Factory();
+        $factory->setProvider('StdClass', $this);
+
+        $analyzer = new MethodAnalyzer($reflection);
+
         $arguments = $this->request->getArguments()->toArray();
-        $this->factory->setSingleton(get_class($this->request), $this->request);
+        $arguments = $this->filter($analyzer, $arguments);
+        $arguments = $analyzer->fillParameters($arguments, $factory);
 
-        $injector = new Injector($this->factory);
-        $args = $injector->injectMethodArguments($reflection, $arguments, $this->filterFactory);
+        return $reflection->invokeArgs($this->object, $arguments);
+    }
 
-        return $reflection->invokeArgs($this->object, $args);
+    private function filter(MethodAnalyzer $analyzer, $arguments) {
+        $args = $analyzer->normalize($arguments);
+        foreach ($args as $name => $value) {
+            $type = $analyzer->getTypeHint($analyzer->getParameter($name));
+            if ($type) {
+                $args[$name] = $this->filters->getFilter($type)->filter($args[$name]);
+            }
+        }
+        return $args;
+    }
+
+    public function provide($class, array $args = array()) {
+        if ($this->request instanceof $class) {
+            return $this->request;
+        }
+        throw new \Exception("Only the Request is injectable, got [$class] instead");
     }
 }

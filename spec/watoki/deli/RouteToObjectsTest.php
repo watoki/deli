@@ -2,9 +2,10 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
-use watoki\deli\filter\DefaultFilterFactory;
+use watoki\deli\filter\DefaultFilterRegistry;
+use watoki\deli\filter\FilterRegistry;
 use watoki\deli\target\ObjectTarget;
-use watoki\factory\FilterFactory;
+use watoki\scrut\ExceptionFixture;
 use watoki\scrut\Specification;
 
 /**
@@ -15,6 +16,7 @@ use watoki\scrut\Specification;
  * `ObjectTarget::factory($factory, $object)`
  *
  * @property RequestFixture request <-
+ * @property ExceptionFixture try <-
  */
 class RouteToObjectsTest extends Specification {
 
@@ -146,7 +148,7 @@ class RouteToObjectsTest extends Specification {
         $this->thenTheResponseShouldBe('not');
     }
 
-    public function testDoNotInflateNullAsDateTime() {
+    function testDoNotInflateNullAsDateTime() {
         $this->givenTheClass_WithTheBody('DoNotInflateNullAsDateTime', '
             function doThis(\DateTime $d = null) {
                 return $d;
@@ -157,6 +159,18 @@ class RouteToObjectsTest extends Specification {
         $this->whenIGetTheResponseFromTheTarget();
 
         $this->thenTheResponseShouldBe(null);
+    }
+
+    function testMissingRequestArgument() {
+        $this->givenTheClass_WithTheBody('MissingRequestArgument', '
+            function doThis(\DateTime $missing) {
+                return $missing;
+            }');
+        $this->request->givenTheRequestHasTheMethod('this');
+
+        $this->whenITryToGetTheResponseFromTheTarget();
+
+        $this->try->thenTheException_ShouldBeThrown('Cannot fill parameter [missing]: Only the Request is injectable, got [DateTime] instead');
     }
 
     ################ SET-UP ##################
@@ -176,9 +190,15 @@ class RouteToObjectsTest extends Specification {
     }
 
     private function whenIGetTheResponseFromTheTarget() {
-        $this->factory->setSingleton(FilterFactory::$CLASS, new DefaultFilterFactory());
+        $this->factory->setSingleton(FilterRegistry::$CLASS, new DefaultFilterRegistry());
         $target = ObjectTarget::factory($this->factory, $this->object)->create($this->request->request);
         $this->response = $target->respond();
+    }
+
+    private function whenITryToGetTheResponseFromTheTarget() {
+        $this->try->tryTo(function () {
+            $this->whenIGetTheResponseFromTheTarget();
+        });
     }
 
     private function thenTheResponseShouldBe($string) {
