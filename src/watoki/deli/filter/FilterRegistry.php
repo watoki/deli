@@ -14,6 +14,7 @@ class FilterRegistry {
      * @return Filter
      */
     public function getFilter($type) {
+        $originalType = $type;
         while ($type) {
             $normalized = $this->normalizeType($type);
             if (array_key_exists($normalized, $this->filters)) {
@@ -21,7 +22,7 @@ class FilterRegistry {
             }
             $type = is_object($type) ? get_parent_class($type) : null;
         }
-        throw new \InvalidArgumentException("Could not find filter for [$type]");
+        throw new \InvalidArgumentException("Could not find filter for [$originalType]");
     }
 
     public function registerFilter($type, Filter $filter) {
