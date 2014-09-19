@@ -38,7 +38,7 @@ class StaticRouter implements Router {
     }
 
     /**
-     * @param callable $targetCreator Returns a Target given the Request and a File
+     * @param callable $targetCreator Returns a Target given the Request, the File and the key of the File
      */
     public function setFileTargetCreator($targetCreator) {
         $this->fileTargetCreator = $targetCreator;
@@ -120,7 +120,7 @@ class StaticRouter implements Router {
         $nextRequest->setTarget(new Path());
 
         $callable = $this->fileTargetCreator;
-        return $callable($nextRequest, $this->store->read($file));
+        return $callable($nextRequest, $this->store->read($file), $file);
     }
 
     /**
