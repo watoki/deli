@@ -62,7 +62,7 @@ class StaticRouter implements Router {
             }
         }
 
-        throw new \Exception("Could not route [{$request->getTarget()}]");
+        throw new TargetNotFoundException("Could not route [{$request->getTarget()}]");
     }
 
     private function findTarget(Request $request) {

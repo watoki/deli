@@ -20,7 +20,7 @@ class TargetFactory {
     }
 
     public function create(Request $request) {
-        return $this->factory->getInstance($this->targetClass, array_merge(array($request), $this->arguments));
+        return $this->factory->getInstance($this->targetClass, array_merge(array('request' => $request), $this->arguments));
     }
 
 } 

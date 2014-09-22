@@ -20,7 +20,7 @@ class CallbackTarget extends Target {
     }
 
     public static function factory($callback) {
-        return new TargetFactory(new Factory(), __CLASS__, array($callback));
+        return new TargetFactory(new Factory(), __CLASS__, array('callback' => $callback));
     }
 
     /**

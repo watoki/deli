@@ -60,6 +60,10 @@ class RouteToObjectsTest extends Specification {
 
     function testInjectRequest() {
         $this->givenTheClass_WithTheBody('InjectRequest', '
+            /**
+             * @param $foo <-
+             * @param $bar <-
+             */
             public function doDa(\watoki\deli\Request $foo, \watoki\deli\Request $bar) {
                 return $foo->getMethod() . "ba" . $bar->getMethod();
             }
@@ -170,7 +174,7 @@ class RouteToObjectsTest extends Specification {
 
         $this->whenITryToGetTheResponseFromTheTarget();
 
-        $this->try->thenTheException_ShouldBeThrown('Cannot fill parameter [missing]: Only the Request is injectable, got [DateTime] instead');
+        $this->try->thenTheException_ShouldBeThrown('Cannot fill parameter [missing]: Argument not given and not marked as injectable.');
     }
 
     ################ SET-UP ##################

@@ -14,7 +14,7 @@ class DynamicRouter implements Router {
 
     /**
      * @param Request $request
-     * @throws \InvalidArgumentException If no matching Target can be found
+     * @throws TargetNotFoundException If no matching Target can be found
      * @return Target
      */
     public function route(Request $request) {
@@ -24,7 +24,7 @@ class DynamicRouter implements Router {
                 return $this->factories[$path]->create($nextRequest);
             }
         }
-        throw new \InvalidArgumentException("Could not find a path matching [{$request->getTarget()->toString()}]");
+        throw new TargetNotFoundException("Could not find a path matching [{$request->getTarget()->toString()}]");
     }
 
     public function set(Path $path, TargetFactory $factory) {

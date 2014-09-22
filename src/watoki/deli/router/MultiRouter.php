@@ -23,11 +23,11 @@ class MultiRouter implements Router {
         foreach ($this->routers as $router) {
             try {
                 return $router->route($request);
-            } catch (\Exception $e) {
+            } catch (TargetNotFoundException $e) {
                 // Try next one
             }
         }
 
-        throw new \Exception("Could not route [{$request->getTarget()}]");
+        throw new TargetNotFoundException("Could not route [{$request->getTarget()}]");
     }
 }

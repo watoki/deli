@@ -16,7 +16,7 @@ class RespondingTarget extends Target {
     }
 
     public static function factory(Factory $factory, Responding $object) {
-        return new TargetFactory($factory, __CLASS__, array($object));
+        return new TargetFactory($factory, __CLASS__, array('object' => $object));
     }
 
     /**

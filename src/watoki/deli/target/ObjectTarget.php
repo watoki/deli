@@ -6,9 +6,8 @@ use watoki\deli\Request;
 use watoki\deli\Target;
 use watoki\factory\Factory;
 use watoki\factory\MethodAnalyzer;
-use watoki\factory\Provider;
 
-class ObjectTarget extends Target implements Provider {
+class ObjectTarget extends Target {
 
     const BEFORE_METHOD = 'before';
 
@@ -22,6 +21,11 @@ class ObjectTarget extends Target implements Provider {
     /** @var FilterRegistry */
     private $filters;
 
+    /**
+     * @param Request $request
+     * @param object $object
+     * @param Factory $factory <-
+     */
     function __construct(Request $request, $object, Factory $factory) {
         parent::__construct($request);
         $this->object = $object;
@@ -30,7 +34,7 @@ class ObjectTarget extends Target implements Provider {
     }
 
     public static function factory(Factory $factory, $object) {
-        return new TargetFactory($factory, __CLASS__, array($object));
+        return new TargetFactory($factory, __CLASS__, array('object' => $object));
     }
 
     /**
@@ -75,14 +79,13 @@ class ObjectTarget extends Target implements Provider {
             throw new \BadMethodCallException("Method [$name] does not exist in [{$class}]");
         }
 
-        $factory = new Factory();
-        $factory->setProvider('StdClass', $this);
+        $this->factory->setSingleton(get_class($this->request), $this->request);
 
         $analyzer = new MethodAnalyzer($reflection);
 
         $arguments = $this->request->getArguments()->toArray();
         $arguments = $this->filter($analyzer, $arguments);
-        $arguments = $analyzer->fillParameters($arguments, $factory);
+        $arguments = $analyzer->fillParameters($arguments, $this->factory);
 
         return $reflection->invokeArgs($this->object, $arguments);
     }
@@ -96,12 +99,5 @@ class ObjectTarget extends Target implements Provider {
             }
         }
         return $args;
-    }
-
-    public function provide($class, array $args = array()) {
-        if ($this->request instanceof $class) {
-            return $this->request;
-        }
-        throw new \Exception("Only the Request is injectable, got [$class] instead");
     }
 }
