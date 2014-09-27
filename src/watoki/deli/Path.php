@@ -8,7 +8,6 @@ class Path extends Liste {
     const SEPARATOR = '/';
 
     public static function fromString($string) {
-        $string = rtrim($string, self::SEPARATOR);
         if ($string === '') {
             return new Path();
         }
