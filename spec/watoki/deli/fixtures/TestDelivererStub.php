@@ -5,7 +5,7 @@ use watoki\deli\Request;
 use watoki\deli\RequestBuilder;
 use watoki\deli\ResponseDeliverer;
 
-class TestDelivery implements ResponseDeliverer, RequestBuilder {
+class TestDelivererStub implements ResponseDeliverer, RequestBuilder {
 
     public $request;
 

@@ -1,6 +1,6 @@
 <?php
 
-use spec\watoki\deli\fixtures\TestDelivery;
+use spec\watoki\deli\fixtures\TestDelivererStub;
 use watoki\deli\Delivery;
 use watoki\deli\Path;
 use watoki\deli\Request;
@@ -14,7 +14,7 @@ $router = new NoneRouter(CallbackTarget::factory(function () {
     causeFatalError();
 }));
 
-$test = new TestDelivery(new Request(new Path(), Path::fromString('some/target')));
+$test = new TestDelivererStub(new Request(new Path(), Path::fromString('some/target')));
 $test->onDeliver(function ($response) {
     echo $response;
 });

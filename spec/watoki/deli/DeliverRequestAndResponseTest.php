@@ -2,7 +2,7 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
-use spec\watoki\deli\fixtures\TestDelivery;
+use spec\watoki\deli\fixtures\TestDelivererStub;
 use watoki\deli\Delivery;
 use watoki\deli\Path;
 use watoki\deli\Request;
@@ -74,7 +74,7 @@ class DeliverRequestAndResponseTest extends Specification {
 
     private $outputString;
 
-    /** @var TestDelivery */
+    /** @var TestDelivererStub */
     private $test;
 
     protected function setUp() {
@@ -96,7 +96,7 @@ class DeliverRequestAndResponseTest extends Specification {
     }
 
     public function whenIRunTheDelivery() {
-        $this->test = new TestDelivery($this->request->request);
+        $this->test = new TestDelivererStub($this->request->request);
         $this->delivery = new Delivery($this->router, $this->test, $this->test);
         $this->delivery->run();
     }
