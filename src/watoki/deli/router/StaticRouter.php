@@ -95,6 +95,7 @@ class StaticRouter implements Router {
     }
 
     private function createTargetFromClass($fullClassName, Request $request, Path $currentTarget) {
+        $fullClassName = str_replace('\\\\', '\\', $fullClassName);
         $object = $this->factory->getInstance($fullClassName);
 
         $nextRequest = $request->copy();
