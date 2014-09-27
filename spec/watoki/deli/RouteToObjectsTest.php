@@ -174,7 +174,8 @@ class RouteToObjectsTest extends Specification {
 
         $this->whenITryToGetTheResponseFromTheTarget();
 
-        $this->try->thenTheException_ShouldBeThrown('Cannot fill parameter [missing]: Argument not given and not marked as injectable.');
+        $this->try->thenTheException_ShouldBeThrown(
+                'Cannot fill parameter [missing] of [MissingRequestArgument::doThis]: Argument not given and not marked as injectable.');
     }
 
     ################ SET-UP ##################
