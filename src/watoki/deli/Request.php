@@ -78,11 +78,24 @@ class Request {
      */
     public function copy() {
         return new Request(
-            $this->context->copy(),
-            $this->target->copy(),
-            $this->method,
-            $this->arguments->copy()
+                $this->context->copy(),
+                $this->target->copy(),
+                $this->method,
+                $this->arguments->copy()
         );
+    }
+
+    public function toString() {
+        return json_encode(array(
+                'context' => $this->context->toString(),
+                'target' => $this->target->toString(),
+                'method' => $this->method,
+                'arguments' => $this->arguments->toArray()
+        ));
+    }
+
+    function __toString() {
+        return $this->toString();
     }
 
 }
