@@ -5,6 +5,8 @@ use watoki\collections\Map;
 
 class Request {
 
+    public static $REQUEST_CLASS = __CLASS__;
+
     /** @var Path */
     private $context;
 

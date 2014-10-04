@@ -6,6 +6,7 @@ use watoki\deli\Request;
 use watoki\deli\Target;
 use watoki\factory\Factory;
 use watoki\factory\MethodAnalyzer;
+use watoki\factory\providers\CallbackProvider;
 
 class ObjectTarget extends Target {
 
@@ -79,7 +80,9 @@ class ObjectTarget extends Target {
             throw new \BadMethodCallException("Method [$name] does not exist in [{$class}]");
         }
 
-        $this->factory->setSingleton(get_class($this->request), $this->request);
+        $this->factory->setProvider(Request::$REQUEST_CLASS, new CallbackProvider(function () {
+            return $this->request;
+        }));
 
         $analyzer = new MethodAnalyzer($reflection);
 
