@@ -11,7 +11,20 @@ class Path extends Liste {
         if ($string === '') {
             return new Path();
         }
+        $string = self::resolve($string);
         return new Path(Liste::split(self::SEPARATOR, $string)->elements);
+    }
+
+    private static function resolve($path) {
+        $re = array(
+            '#/\./#' => '/',
+            '#^\./#' => '',
+            '#/(?!\.\.)[^/]+/\.\.#' => '',
+            '#^(?!\.\.)[^/]+/\.\./#' => '');
+        for ($n = 1; $n > 0;) {
+            $path = preg_replace(array_keys($re), array_values($re), $path, -1, $n);
+        }
+        return $path;
     }
 
     public function isAbsolute() {
@@ -19,7 +32,7 @@ class Path extends Liste {
     }
 
     public function toString() {
-        return $this->join(self::SEPARATOR);
+        return self::resolve($this->join(self::SEPARATOR));
     }
 
     function __toString() {
