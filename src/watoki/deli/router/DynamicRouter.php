@@ -5,7 +5,9 @@ use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\Router;
 use watoki\deli\Target;
+use watoki\deli\target\ObjectTarget;
 use watoki\deli\target\TargetFactory;
+use watoki\factory\Factory;
 
 class DynamicRouter implements Router {
 
@@ -37,8 +39,12 @@ class DynamicRouter implements Router {
         });
     }
 
-    public function setPath($string, TargetFactory $factory) {
-        $this->set(Path::fromString($string), $factory);
+    public function setPath($pathString, TargetFactory $factory) {
+        $this->set(Path::fromString($pathString), $factory);
+    }
+
+    public function setObject($pathString, $class, Factory $factory) {
+        $this->setPath($pathString, ObjectTarget::factory($factory, $factory->getInstance($class)));
     }
 
     /**
