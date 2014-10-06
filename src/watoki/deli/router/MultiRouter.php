@@ -10,6 +10,10 @@ class MultiRouter implements Router {
     /** @var array|Router[] */
     private $routers = array();
 
+    function __construct($routers = array()) {
+        $this->routers = $routers;
+    }
+
     public function add(Router $router) {
         $this->routers[] = $router;
     }
