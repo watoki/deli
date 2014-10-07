@@ -71,22 +71,29 @@ class StaticRouter implements Router {
         foreach ($request->getTarget() as $nodeName) {
             $currentTarget->append($nodeName);
 
-            $target = $this->findCurrentTarget($request, $currentTarget);
+            $target = $this->findNodeTarget($request, $currentTarget);
             if ($target) {
                 return $target;
             }
         }
-
-        return null;
+        return $this->findLeafTarget($request, $currentTarget);
     }
 
-    private function findCurrentTarget(Request $request, Path $currentTarget) {
+    private function findNodeTarget(Request $request, Path $currentTarget) {
+        $node = $currentTarget->copy();
+        $node->append(ucfirst($node->last()) . $this->suffix);
+        return $this->createTargetFromClassFile($node, $request, $currentTarget);
+    }
+
+    private function findLeafTarget(Request $request, Path $currentTarget) {
         $node = $currentTarget->copy();
         $className = ucfirst($node->pop()) . $this->suffix;
         $node->append($className);
+        return $this->createTargetFromClassFile($node, $request, $currentTarget);
+    }
 
+    private function createTargetFromClassFile(Path $node, Request $request, Path $currentTarget) {
         $filePath = $node . '.php';
-
         if ($this->store->exists($filePath)) {
             $fullClassName = $this->namespace . '\\' . implode('\\', $node->toArray());
             return $this->createTargetFromClass($fullClassName, $request, $currentTarget);
