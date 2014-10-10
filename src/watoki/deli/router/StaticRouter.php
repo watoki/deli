@@ -66,56 +66,49 @@ class StaticRouter implements Router {
     }
 
     private function findTarget(Request $request) {
-        $currentTarget = new Path();
+        $currentContext = new Path();
 
         foreach ($request->getTarget() as $nodeName) {
-            $currentTarget->append($nodeName);
-
-            $target = $this->findNodeTarget($request, $currentTarget);
+            $target = $this->findNode($request, $currentContext, $nodeName);
             if ($target) {
                 return $target;
             }
-        }
-        return $this->findLeafTarget($request, $currentTarget);
-    }
 
-    private function findNodeTarget(Request $request, Path $currentTarget) {
-        $node = $currentTarget->copy();
-        $node->append(ucfirst($node->last()) . $this->suffix);
-        return $this->createTargetFromClassFile($node, $request, $currentTarget);
-    }
-
-    private function findLeafTarget(Request $request, Path $currentTarget) {
-        $node = $currentTarget->copy();
-        $className = ucfirst($node->pop()) . $this->suffix;
-        $node->append($className);
-        return $this->createTargetFromClassFile($node, $request, $currentTarget);
-    }
-
-    private function createTargetFromClassFile(Path $node, Request $request, Path $currentTarget) {
-        $filePath = $node . '.php';
-        if ($this->store->exists($filePath)) {
-            $fullClassName = $this->namespace . '\\' . implode('\\', $node->toArray());
-            return $this->createTargetFromClass($fullClassName, $request, $currentTarget);
+            $currentContext->append($nodeName);
         }
         return null;
     }
 
-    private function createTargetFromClass($fullClassName, Request $request, Path $currentTarget) {
-        $fullClassName = str_replace('\\\\', '\\', $fullClassName);
+    private function findNode(Request $request, Path $currentContext, $nodeName) {
+        $className = ucfirst($nodeName) . $this->suffix;
+        return $this->createTargetFromClassFile($request, $currentContext, $className);
+    }
+
+    private function createTargetFromClassFile(Request $request, Path $currentContext, $className) {
+        $path = $currentContext->copy();
+        $path->append($className);
+
+        if ($this->store->exists($path . '.php')) {
+            $fullClassName = $path->join('\\');
+            if ($this->namespace) {
+                $fullClassName = $this->namespace . '\\' . $fullClassName;
+            }
+
+            return $this->createTargetFromClass($fullClassName, $request, $currentContext);
+        }
+        return null;
+    }
+
+    private function createTargetFromClass($fullClassName, Request $request, Path $currentContext) {
         $object = $this->factory->getInstance($fullClassName);
 
         $nextRequest = $request->copy();
-        $nextContext = $request->getContext()->copy();
-        foreach ($currentTarget as $targetPart) {
-            $nextContext->append($targetPart);
-        }
-        $nextRequest->setContext($nextContext);
-        $nextRequest->setTarget(new Path($request->getTarget()->slice($currentTarget->count())->toArray()));
+        $nextRequest->getContext()->appendAll($currentContext);
+        $nextRequest->setTarget(new Path($request->getTarget()->slice($currentContext->count())->toArray()));
 
         if ($object instanceof Responding) {
             return new RespondingTarget($nextRequest, $object);
-        } else if ($currentTarget->count() == $request->getTarget()->count()) {
+        } else if ($nextRequest->getTarget()->count() == 1) {
             return new ObjectTarget($nextRequest, $object, $this->factory);
         } else {
             throw new \Exception("[$fullClassName] needs to implement Responding");
@@ -125,7 +118,7 @@ class StaticRouter implements Router {
     private function createTargetFromFile(Request $request, $file) {
         $nextRequest = $request->copy();
         $nextRequest->setContext($request->getTarget()->copy());
-        $nextRequest->setTarget(new Path());
+        $nextRequest->setTarget(new Path(array($nextRequest->getContext()->pop())));
 
         $callable = $this->fileTargetCreator;
         return $callable($nextRequest, $this->store->read($file), $file);

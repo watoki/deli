@@ -32,7 +32,7 @@ class RouteToClassesTest extends Specification {
         $this->givenAClass_In_WithTheBody('some\space\foo\bar\TargetNode', 'foo/bar', '
             /** @param $request <- */
             function doThis(\watoki\deli\Request $request) {
-                return "Found me at " . $request->getContext();
+                return "Found " . $request->getTarget() . " at " . $request->getContext();
             }
         ');
         $this->request->givenTheRequestHasTheContext('my/context');
@@ -40,43 +40,34 @@ class RouteToClassesTest extends Specification {
         $this->request->givenTheRequestHasTheMethod('this');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Found me at my/context/foo/bar/target");
+        $this->thenTheTargetShouldRespondWith("Found target at my/context/foo/bar");
     }
 
     function testTargetIsARespondingClass() {
         $this->givenTheBaseNamespaceIs('respond');
-        $this->givenARespondingClass_In_Returning('respond\foo\RespondingNode', 'foo', '"Hello {$request->getContext()}"');
+        $this->givenARespondingClass_In_Returning('respond\foo\RespondingNode', 'foo', '"Hello {$request->getContext()} {$request->getTarget()}"');
         $this->request->givenTheRequestHasTheTarget('foo/responding');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Hello foo/responding");
+        $this->thenTheTargetShouldRespondWith("Hello foo responding");
     }
 
     function testNodeOnTheWay() {
         $this->givenTheBaseNamespaceIs('node');
-        $this->givenARespondingClass_In_Returning('node\foo\here\HereNode', 'foo/here', '$request->getTarget()->toString()');
+        $this->givenARespondingClass_In_Returning('node\foo\HereNode', 'foo', '$request->getContext() . " " . $request->getTarget()');
         $this->request->givenTheRequestHasTheTarget('foo/here/some/where');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith('some/where');
-    }
-
-    function testLeafOnTheWay() {
-        $this->givenTheBaseNamespaceIs('leaf');
-        $this->givenARespondingClass_In_Returning('leaf\foo\HereNode', 'foo', '$request->getTarget()->toString()');
-        $this->request->givenTheRequestHasTheTarget('foo/here/some/where');
-
-        $this->whenITryToRouteTheRequest();
-        $this->try->thenTheException_ShouldBeThrown('Could not route [foo/here/some/where]');
+        $this->thenTheTargetShouldRespondWith('foo here/some/where');
     }
 
     function testNonRespondingClassOnTheWay() {
         $this->givenTheBaseNamespaceIs('not');
-        $this->givenAClass_In_WithTheBody('not\foo\here\HereNode', 'foo/here', '');
+        $this->givenAClass_In_WithTheBody('not\foo\HereNode', 'foo', '');
         $this->request->givenTheRequestHasTheTarget('foo/here/target');
 
         $this->whenITryToRouteTheRequest();
-        $this->try->thenTheException_ShouldBeThrown('[not\foo\here\HereNode] needs to implement Responding');
+        $this->try->thenTheException_ShouldBeThrown('[not\foo\HereNode] needs to implement Responding');
     }
 
     function testTargetIsFile() {
@@ -90,7 +81,7 @@ class RouteToClassesTest extends Specification {
         $this->request->givenTheRequestHasTheTarget('file/foo/bar');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith('file/foo/bar -> Hello again');
+        $this->thenTheTargetShouldRespondWith('file/foo -> Hello again');
     }
 
     function testTargetIsFileAndClass() {
