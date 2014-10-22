@@ -3,13 +3,10 @@ namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
 use spec\watoki\stores\FileStoreFixture;
-use watoki\deli\Request;
 use watoki\deli\router\StaticRouter;
 use watoki\deli\Target;
-use watoki\deli\target\CallbackTarget;
 use watoki\scrut\ExceptionFixture;
 use watoki\scrut\Specification;
-use watoki\stores\file\raw\File;
 
 /**
  * The `StaticRouter` maps Paths to classes relative to a root directory.
@@ -32,7 +29,7 @@ class RouteToClassesTest extends Specification {
         $this->givenAClass_In_WithTheBody('some\space\foo\bar\TargetNode', 'foo/bar', '
             /** @param $request <- */
             function doThis(\watoki\deli\Request $request) {
-                return "Found " . $request->getTarget() . " at " . $request->getContext();
+                return "Found it at " . $request->getContext();
             }
         ');
         $this->request->givenTheRequestHasTheContext('my/context');
@@ -40,66 +37,46 @@ class RouteToClassesTest extends Specification {
         $this->request->givenTheRequestHasTheMethod('this');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Found target at my/context/foo/bar");
+        $this->thenTheTargetShouldRespondWith("Found it at my/context/foo/bar/target");
     }
 
     function testTargetIsARespondingClass() {
         $this->givenTheBaseNamespaceIs('respond');
-        $this->givenARespondingClass_In_Returning('respond\foo\RespondingNode', 'foo', '"Hello {$request->getContext()} {$request->getTarget()}"');
+        $this->givenARespondingClass_In_Returning('respond\foo\RespondingNode', 'foo',
+            '"Hello {$request->getContext()}:{$request->getTarget()}"');
         $this->request->givenTheRequestHasTheTarget('foo/responding');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Hello foo responding");
+        $this->thenTheTargetShouldRespondWith("Hello foo/responding:");
     }
 
-    function testNodeOnTheWay() {
+    function testIndexNodeOnTheWay() {
         $this->givenTheBaseNamespaceIs('node');
-        $this->givenARespondingClass_In_Returning('node\foo\HereNode', 'foo', '$request->getContext() . " " . $request->getTarget()');
+        $this->givenARespondingClass_In_Returning('node\foo\here\IndexNode', 'foo/here',
+            '$request->getContext() . ":" . $request->getTarget()');
         $this->request->givenTheRequestHasTheTarget('foo/here/some/where');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith('foo here/some/where');
+        $this->thenTheTargetShouldRespondWith('foo/here:some/where');
     }
 
-    function testNonRespondingClassOnTheWay() {
+    function testIndexNodeNotResponding() {
         $this->givenTheBaseNamespaceIs('not');
-        $this->givenAClass_In_WithTheBody('not\foo\HereNode', 'foo', '');
+        $this->givenAClass_In_WithTheBody('not\foo\here\IndexNode', 'foo/here', '');
         $this->request->givenTheRequestHasTheTarget('foo/here/target');
 
         $this->whenITryToRouteTheRequest();
-        $this->try->thenTheException_ShouldBeThrown('[not\foo\HereNode] needs to implement Responding');
+        $this->try->thenTheException_ShouldBeThrown('[not\foo\here\IndexNode] needs to implement Responding');
     }
 
-    function testTargetIsFile() {
-        $this->givenAnObjectFromAFileIsCreatedWith(function (Request $r, File $f) {
-            return new CallbackTarget($r, function () use ($r, $f) {
-                return $r->getContext() . ' -> ' . $f->content;
-            });
-        });
-
-        $this->file->givenAFile_WithContent('file/foo/bar', 'Hello again');
-        $this->request->givenTheRequestHasTheTarget('file/foo/bar');
+    function testTargetIsIndexClass() {
+        $this->givenTheBaseNamespaceIs('index');
+        $this->givenARespondingClass_In_Returning('index\foo\IndexNode', 'foo',
+                '"Hello " . $request->getContext()');
+        $this->request->givenTheRequestHasTheTarget('foo/');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith('file/foo -> Hello again');
-    }
-
-    function testTargetIsFileAndClass() {
-        $this->givenAnObjectFromAFileIsCreatedWith(function (Request $r, File $f) {
-            return new CallbackTarget($r, function () use ($f) {
-                return $f->content;
-            });
-        });
-
-        $this->file->givenAFile_WithContent('foo/bar', 'The file');
-
-        $this->givenTheBaseNamespaceIs('both');
-        $this->givenARespondingClass_In_Returning('both\foo\BarNode', 'foo', '"The class"');
-
-        $this->request->givenTheRequestHasTheTarget('foo/bar');
-
-        $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith('The class');
+        $this->thenTheTargetShouldRespondWith("Hello foo");
     }
 
     function testTargetDoesNotExist() {
@@ -116,9 +93,6 @@ class RouteToClassesTest extends Specification {
 
     /** @var null|Target */
     private $target;
-
-    /** @var callable */
-    private $fileObject;
 
     private function givenTheClassSuffixIs($string) {
         $this->suffix = $string;
@@ -158,13 +132,8 @@ class RouteToClassesTest extends Specification {
         $this->file->givenAFile_WithContent($fileName, '<?php ' . $code);
     }
 
-    private function givenAnObjectFromAFileIsCreatedWith($callable) {
-        $this->fileObject = $callable;
-    }
-
     public function whenIRouteTheRequest() {
         $router = new StaticRouter($this->factory, $this->file->store, $this->namespace, $this->suffix);
-        $router->setFileTargetCreator($this->fileObject);
         $this->target = $router->route($this->request->request);
     }
 

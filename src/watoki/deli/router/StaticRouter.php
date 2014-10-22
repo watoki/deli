@@ -15,6 +15,8 @@ class StaticRouter implements Router {
 
     const DEFAULT_SUFFIX = 'Class';
 
+    const DEFAULT_INDEX = 'index';
+
     /** @var RawFileStore */
     protected $store;
 
@@ -22,26 +24,21 @@ class StaticRouter implements Router {
     private $namespace;
 
     /** @var string */
-    private $suffix;
+    protected $index;
+
+    /** @var string */
+    protected $suffix;
 
     /** @var Factory */
-    private $factory;
+    protected $factory;
 
-    /** @var callable */
-    private $fileTargetCreator;
-
-    function __construct(Factory $factory, RawFileStore $store, $namespace, $suffix = self::DEFAULT_SUFFIX) {
+    function __construct(Factory $factory, RawFileStore $store, $namespace,
+                         $suffix = self::DEFAULT_SUFFIX, $index = self::DEFAULT_INDEX) {
         $this->factory = $factory;
         $this->store = $store;
         $this->namespace = $namespace;
         $this->suffix = $suffix;
-    }
-
-    /**
-     * @param callable $targetCreator Returns a Target given the Request, the File and the key of the File
-     */
-    public function setFileTargetCreator($targetCreator) {
-        $this->fileTargetCreator = $targetCreator;
+        $this->index = $index;
     }
 
     /**
@@ -55,13 +52,6 @@ class StaticRouter implements Router {
             return $target;
         }
 
-        if ($this->fileTargetCreator) {
-            $found = $this->existingFile($request);
-            if ($found) {
-                return $this->createTargetFromFile($request, $found);
-            }
-        }
-
         throw new TargetNotFoundException("Could not route [{$request->getTarget()}]");
     }
 
@@ -69,25 +59,32 @@ class StaticRouter implements Router {
         $currentContext = new Path();
 
         foreach ($request->getTarget() as $nodeName) {
-            $target = $this->findNode($request, $currentContext, $nodeName);
+            $target = $this->findIndexNode($request, $currentContext);
             if ($target) {
                 return $target;
             }
-
             $currentContext->append($nodeName);
         }
-        return null;
+        return $this->findNode($request, $currentContext);
     }
 
-    private function findNode(Request $request, Path $currentContext, $nodeName) {
-        $className = ucfirst($nodeName) . $this->suffix;
-        return $this->createTargetFromClassFile($request, $currentContext, $className);
-    }
-
-    private function createTargetFromClassFile(Request $request, Path $currentContext, $className) {
+    protected function findIndexNode(Request $request, Path $currentContext) {
         $path = $currentContext->copy();
+        $path->append(ucfirst($this->index) . $this->suffix);
+
+        return $this->createTargetFromClassPath($path, $request, $currentContext);
+    }
+
+    private function findNode(Request $request, Path $currentContext) {
+        $path = $currentContext->copy();
+        $nodeName = $path->pop();
+        $className = ucfirst($nodeName) . $this->suffix;
         $path->append($className);
 
+        return $this->createTargetFromClassPath($path, $request, $currentContext);
+    }
+
+    private function createTargetFromClassPath(Path $path, Request $request, Path $currentContext) {
         if ($this->store->exists($path . '.php')) {
             $fullClassName = $path->join('\\');
             if ($this->namespace) {
@@ -99,40 +96,19 @@ class StaticRouter implements Router {
         return null;
     }
 
-    private function createTargetFromClass($fullClassName, Request $request, Path $currentContext) {
+    private function createTargetFromClass($fullClassName, Request $request, Path $context) {
         $object = $this->factory->getInstance($fullClassName);
 
         $nextRequest = $request->copy();
-        $nextRequest->getContext()->appendAll($currentContext);
-        $nextRequest->setTarget(new Path($request->getTarget()->slice($currentContext->count())->toArray()));
+        $nextRequest->getContext()->appendAll($context);
+        $nextRequest->setTarget(new Path($request->getTarget()->slice($context->count())->toArray()));
 
         if ($object instanceof Responding) {
             return new RespondingTarget($nextRequest, $object);
-        } else if ($nextRequest->getTarget()->count() == 1) {
+        } else if ($nextRequest->getTarget()->isEmpty()) {
             return new ObjectTarget($nextRequest, $object, $this->factory);
         } else {
             throw new \Exception("[$fullClassName] needs to implement Responding");
         }
-    }
-
-    private function createTargetFromFile(Request $request, $file) {
-        $nextRequest = $request->copy();
-        $nextRequest->setContext($request->getTarget()->copy());
-        $nextRequest->setTarget(new Path(array($nextRequest->getContext()->pop())));
-
-        $callable = $this->fileTargetCreator;
-        return $callable($nextRequest, $this->store->read($file), $file);
-    }
-
-    /**
-     * @param Request $request
-     * @return string|null
-     */
-    protected function existingFile(Request $request) {
-        $file = $request->getTarget()->toString();
-        if ($this->store->exists($file)) {
-            return $file;
-        }
-        return null;
     }
 }
