@@ -40,7 +40,7 @@ class Delivery {
 
     private function catchErrors(Request $request) {
         error_reporting(self::$errorReporting);
-        ini_set('display_errors', false);
+        ini_set('display_errors', !!self::$errorReporting);
         register_shutdown_function(array($this, 'handleError'), $request);
     }
 
