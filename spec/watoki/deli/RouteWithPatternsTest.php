@@ -2,7 +2,6 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
-use watoki\deli\Path;
 use watoki\deli\Request;
 use watoki\deli\router\DynamicRouter;
 use watoki\deli\target\CallbackTarget;
@@ -61,14 +60,14 @@ class RouteWithPatternsTest extends Specification {
         $this->thenAnException_ShouldBeThrown('Could not find a path matching [foo]');
     }
 
-    function testSpecificOverGeneral() {
+    function testAStickToOrder() {
         $this->givenISetATargetForThePath_Responding('foo/bar', 'first');
         $this->givenISetATargetForThePath_Responding('foo/{bar}/baz', 'second');
         $this->givenISetATargetForThePath_Responding('foo/bar/baz', 'third');
         $this->request->givenTheRequestHasTheTarget('foo/bar/baz');
 
         $this->whenIRouteTheRequest();
-        $this->thenResponseShouldBe('third');
+        $this->thenResponseShouldBe('first');
     }
 
     function testNotMatching() {
@@ -99,13 +98,13 @@ class RouteWithPatternsTest extends Specification {
     }
 
     private function givenISetATargetForThePath($path) {
-        $this->router->set(Path::fromString($path), CallbackTarget::factory(function (Request $r) {
+        $this->router->addPath($path, CallbackTarget::factory(function (Request $r) {
             return $r;
         }));
     }
 
     private function  givenISetATargetForThePath_Responding($path, $return) {
-        $this->router->set(Path::fromString($path), CallbackTarget::factory(function () use ($return) {
+        $this->router->addPath($path, CallbackTarget::factory(function () use ($return) {
             return $return;
         }));
     }

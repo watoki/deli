@@ -53,7 +53,7 @@ class CombineRoutersTest extends Specification {
 
     private function givenIHaveAddedARouterWhere_RespondsWith($string, $return) {
         $router = new DynamicRouter();
-        $router->set(Path::fromString($string), CallbackTarget::factory(function () use ($return) {
+        $router->addPath($string, CallbackTarget::factory(function () use ($return) {
             return $return;
         }));
         $this->router->add($router);
