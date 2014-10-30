@@ -1,6 +1,8 @@
 <?php
 namespace watoki\deli\filter;
  
+use watoki\collections\Map;
+
 class DefaultFilterRegistry extends FilterRegistry {
 
     public static $CLASS = __CLASS__;
@@ -12,6 +14,7 @@ class DefaultFilterRegistry extends FilterRegistry {
         $this->registerFilter('integer', new IntegerFilter());
         $this->registerFilter('string', new StringFilter());
         $this->registerFilter('DateTime', new DateTimeFilter());
+        $this->registerFilter(Map::$CLASSNAME, new MapFilter());
     }
 
     /**
