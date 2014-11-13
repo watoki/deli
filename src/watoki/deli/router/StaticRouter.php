@@ -88,7 +88,7 @@ class StaticRouter implements Router {
         if ($this->store->exists($path . '.php')) {
             $fullClassName = $path->join('\\');
             if ($this->namespace) {
-                $fullClassName = $this->namespace . '\\' . $fullClassName;
+                $fullClassName = rtrim($this->namespace, '\\') . '\\' . trim($fullClassName, '\\');
             }
 
             return $this->createTargetFromClass($fullClassName, $request, $currentContext);
