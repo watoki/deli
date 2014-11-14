@@ -2,7 +2,6 @@
 namespace spec\watoki\deli;
 
 use spec\watoki\deli\fixtures\RequestFixture;
-use spec\watoki\stores\FileStoreFixture;
 use watoki\deli\router\StaticRouter;
 use watoki\deli\Target;
 use watoki\scrut\ExceptionFixture;
@@ -16,7 +15,7 @@ use watoki\scrut\Specification;
  *
  * @property RequestFixture request <-
  * @property ExceptionFixture try <-
- * @property FileStoreFixture file <-
+ * @property \spec\watoki\stores\fixtures\FileStoreFixture file <-
  */
 class RouteToClassesTest extends Specification {
 
