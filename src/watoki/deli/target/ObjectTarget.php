@@ -5,7 +5,7 @@ use watoki\deli\filter\FilterRegistry;
 use watoki\deli\Request;
 use watoki\deli\Target;
 use watoki\factory\Factory;
-use watoki\factory\MethodAnalyzer;
+use watoki\reflect\MethodAnalyzer;
 use watoki\factory\providers\CallbackProvider;
 
 class ObjectTarget extends Target {
@@ -88,7 +88,11 @@ class ObjectTarget extends Target {
 
         $arguments = $this->request->getArguments()->toArray();
         $arguments = $this->filter($analyzer, $arguments);
-        $arguments = $analyzer->fillParameters($arguments, $this->factory);
+
+        $factory = $this->factory;
+        $arguments = $analyzer->fillParameters($arguments, function ($class) use ($factory) {
+            return $factory->getInstance($class);
+        });
 
         return $reflection->invokeArgs($this->object, $arguments);
     }
