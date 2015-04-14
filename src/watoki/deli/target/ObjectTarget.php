@@ -5,6 +5,7 @@ use watoki\deli\filter\FilterRegistry;
 use watoki\deli\Request;
 use watoki\deli\Target;
 use watoki\factory\Factory;
+use watoki\factory\providers\DefaultProvider;
 use watoki\reflect\MethodAnalyzer;
 use watoki\factory\providers\CallbackProvider;
 
@@ -15,6 +16,9 @@ class ObjectTarget extends Target {
     const AFTER_METHOD = 'after';
 
     private $object;
+
+    /** @var callable */
+    private $parameterInjectionFilter;
 
     /** @var Factory */
     private $factory;
@@ -29,9 +33,15 @@ class ObjectTarget extends Target {
      */
     function __construct(Request $request, $object, Factory $factory) {
         parent::__construct($request);
+
         $this->object = $object;
         $this->factory = $factory;
         $this->filters = $factory->getInstance(FilterRegistry::$CLASS);
+
+        $this->parameterInjectionFilter = function (\ReflectionParameter $parameter) {
+            $pattern = '/@param.+\$' . $parameter->getName() . '.+' . DefaultProvider::INJECTION_TOKEN . '/';
+            return preg_match($pattern, $parameter->getDeclaringFunction()->getDocComment());
+        };
     }
 
     public static function factory(Factory $factory, $object) {
@@ -92,7 +102,7 @@ class ObjectTarget extends Target {
         $factory = $this->factory;
         $arguments = $analyzer->fillParameters($arguments, function ($class) use ($factory) {
             return $factory->getInstance($class);
-        });
+        }, $this->parameterInjectionFilter);
 
         return $reflection->invokeArgs($this->object, $arguments);
     }
@@ -106,5 +116,12 @@ class ObjectTarget extends Target {
             }
         }
         return $args;
+    }
+
+    /**
+     * @param callable $filter
+     */
+    public function setParameterInjectionFilter($filter) {
+        $this->parameterInjectionFilter = $filter;
     }
 }
