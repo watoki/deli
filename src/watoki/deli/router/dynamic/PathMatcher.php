@@ -3,7 +3,6 @@ namespace watoki\deli\router\dynamic;
 
 use watoki\deli\Path;
 use watoki\deli\Request;
-use watoki\deli\router\dynamic\Matcher;
 
 class PathMatcher implements Matcher {
 
@@ -19,31 +18,25 @@ class PathMatcher implements Matcher {
      * @return \watoki\deli\Request|null
      */
     public function matches(Request $request) {
-        $nextRequest = $request->copy();
-        $target = $request->getTarget();
+        $target = $request->getTarget()->getElements();
+        $elements = $this->path->getElements();
 
-        for ($i = 0; $i < $this->path->count(); $i++) {
-            $p = $this->path->get($i);
+        for ($i = 0; $i < count($elements); $i++) {
+            $p = $elements[$i];
 
-            if ($i >= $target->count()) {
+            if ($i >= count($target)) {
                 return null;
             } else if (substr($p, 0, 1) == '{' && substr($p, -1) == '}') {
                 $key = substr($p, 1, -1);
-                $value = $target->get($i);
-                $nextRequest->getArguments()->set($key, $value);
-            } else if ($target->get($i) != $p) {
+                $value = $target[$i];
+                $request = $request->withArgument($key, $value);
+            } else if ($target[$i] != $p) {
                 return null;
             }
         }
 
-        $nextContext = $request->getContext()->copy();
-        foreach (new Path($target->slice(0, $i)->toArray()) as $part) {
-            $nextContext->append($part);
-        }
-
-        $nextRequest->setContext($nextContext);
-        $nextRequest->setTarget(new Path($target->slice($i)->toArray()));
-
-        return $nextRequest;
+        return $request
+            ->withContext($request->getContext()->appendedAll(array_slice($target, 0, $i)))
+            ->withTarget(new Path(array_slice($target, $i)));
     }
 }

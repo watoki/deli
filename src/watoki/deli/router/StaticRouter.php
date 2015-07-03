@@ -58,35 +58,32 @@ class StaticRouter implements Router {
     private function findTarget(Request $request) {
         $currentContext = new Path();
 
-        foreach ($request->getTarget() as $nodeName) {
+        foreach ($request->getTarget()->getElements() as $nodeName) {
             $target = $this->findIndexNode($request, $currentContext);
             if ($target) {
                 return $target;
             }
-            $currentContext->append($nodeName);
+            $currentContext = $currentContext->appended($nodeName);
         }
         return $this->findNode($request, $currentContext);
     }
 
     protected function findIndexNode(Request $request, Path $currentContext) {
-        $path = $currentContext->copy();
-        $path->append(ucfirst($this->index) . $this->suffix);
+        $path = $currentContext->appended(ucfirst($this->index) . $this->suffix);
 
         return $this->createTargetFromClassPath($path, $request, $currentContext);
     }
 
     private function findNode(Request $request, Path $currentContext) {
-        $path = $currentContext->copy();
-        $nodeName = $path->pop();
-        $className = ucfirst($nodeName) . $this->suffix;
-        $path->append($className);
+        $path = $currentContext->getElements();
+        $path[] = ucfirst(array_pop($path)) . $this->suffix;
 
-        return $this->createTargetFromClassPath($path, $request, $currentContext);
+        return $this->createTargetFromClassPath(new Path($path), $request, $currentContext);
     }
 
     private function createTargetFromClassPath(Path $path, Request $request, Path $currentContext) {
         if ($this->store->exists($path . '.php')) {
-            $fullClassName = $path->join('\\');
+            $fullClassName = implode('\\', $path->getElements());
             if ($this->namespace) {
                 $fullClassName = rtrim($this->namespace, '\\') . '\\' . trim($fullClassName, '\\');
             }
@@ -101,13 +98,12 @@ class StaticRouter implements Router {
     private function createTargetFromClass($fullClassName, Request $request, Path $context) {
         $object = $this->factory->getInstance($fullClassName);
 
-        $nextRequest = $request->copy();
-        $nextRequest->getContext()->appendAll($context);
-        $nextRequest->setTarget(new Path($request->getTarget()->slice($context->count())->toArray()));
+        $nextRequest = $request->withContext($request->getContext()->appendedAll($context->getElements()));
+        $nextRequest = $nextRequest->withTarget(new Path(array_slice($request->getTarget()->getElements(), count($context->getElements()))));
 
         if ($object instanceof Responding) {
             return new RespondingTarget($nextRequest, $object);
-        } else if ($nextRequest->getTarget()->isEmpty()) {
+        } else if (!count($nextRequest->getTarget()->getElements())) {
             return new ObjectTarget($nextRequest, $object, $this->factory);
         } else {
             throw new \Exception("[$fullClassName] needs to implement Responding");

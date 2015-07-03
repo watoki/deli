@@ -16,19 +16,19 @@ class RequestFixture extends Fixture {
     }
 
     public function givenTheRequestHasTheContext($pathString) {
-        $this->request->setContext(Path::fromString($pathString));
+        $this->request = $this->request->withContext(Path::fromString($pathString));
     }
 
     public function givenTheRequestHasTheTarget($pathString) {
-        $this->request->setTarget(Path::fromString($pathString));
+        $this->request = $this->request->withTarget(Path::fromString($pathString));
     }
 
     public function givenTheRequestHasTheMethod($string) {
-        $this->request->setMethod($string);
+        $this->request = $this->request->withMethod($string);
     }
 
     public function givenTheRequestHasTheArgument_WithTheValue($key, $value) {
-        $this->request->getArguments()->set($key, $value);
+        $this->request = $this->request->withArgument($key, $value);
     }
 
 } 

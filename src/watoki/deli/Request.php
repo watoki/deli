@@ -51,37 +51,67 @@ class Request {
      * @return \watoki\collections\Map
      */
     public function getArguments() {
-        return $this->arguments;
+        return $this->arguments->copy();
+    }
+
+    /**
+     * @param Map $arguments
+     * @return Request
+     */
+    public function withArguments(Map $arguments) {
+        $newUrl = $this->copy();
+        $newUrl->arguments = $arguments;
+        return $newUrl;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return Request
+     */
+    public function withArgument($key, $value) {
+        $newUrl = $this->copy();
+        $newUrl->arguments->set($key, $value);
+        return $newUrl;
     }
 
     /**
      * @param \watoki\deli\Path $context
+     * @return Request
      */
-    public function setContext(Path $context) {
-        $this->context = $context;
+    public function withContext(Path $context) {
+        $copy = $this->copy();
+        $copy->context = $context;
+        return $copy;
     }
 
     /**
      * @param string $method
+     * @return Request
      */
-    public function setMethod($method) {
-        $this->method = $method;
+    public function withMethod($method) {
+        $copy = $this->copy();
+        $copy->method = $method;
+        return $copy;
     }
 
     /**
      * @param \watoki\deli\Path $target
+     * @return Request
      */
-    public function setTarget($target) {
-        $this->target = $target;
+    public function withTarget($target) {
+        $copy = $this->copy();
+        $copy->target = $target;
+        return $copy;
     }
 
     /**
      * @return static
      */
-    public function copy() {
+    protected function copy() {
         return new Request(
-                $this->context->copy(),
-                $this->target->copy(),
+                $this->context,
+                $this->target,
                 $this->method,
                 $this->arguments->copy()
         );
