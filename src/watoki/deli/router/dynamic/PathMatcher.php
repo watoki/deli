@@ -18,6 +18,10 @@ class PathMatcher implements Matcher {
      * @return \watoki\deli\Request|null
      */
     public function matches(Request $request) {
+        if (!$this->path->getElements()) {
+            return $request;
+        }
+
         $target = $request->getTarget()->getElements();
         $elements = $this->path->getElements();
 
@@ -36,7 +40,7 @@ class PathMatcher implements Matcher {
         }
 
         return $request
-            ->withContext($request->getContext()->appendedAll(array_slice($target, 0, $i)))
-            ->withTarget(new Path(array_slice($target, $i)));
+            ->withContext($request->getContext()->appendedAll(array_slice($target, 0, $i - 1)))
+            ->withTarget(new Path(array_slice($target, $i - 1)));
     }
 }

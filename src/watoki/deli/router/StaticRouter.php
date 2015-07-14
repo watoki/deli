@@ -69,19 +69,19 @@ class StaticRouter implements Router {
     }
 
     protected function findIndexNode(Request $request, Path $currentContext) {
-        $path = $currentContext->appended(ucfirst($this->index) . $this->suffix);
-
-        return $this->createTargetFromClassPath($path, $request, $currentContext);
+        return $this->createTargetFromClassPath(ucfirst($this->index) . $this->suffix, $request, $currentContext);
     }
 
     private function findNode(Request $request, Path $currentContext) {
         $path = $currentContext->getElements();
-        $path[] = ucfirst(array_pop($path)) . $this->suffix;
+        $target = ucfirst(array_pop($path)) . $this->suffix;
 
-        return $this->createTargetFromClassPath(new Path($path), $request, $currentContext);
+        return $this->createTargetFromClassPath($target, $request, $currentContext->with($path));
     }
 
-    private function createTargetFromClassPath(Path $path, Request $request, Path $currentContext) {
+    private function createTargetFromClassPath($target, Request $request, Path $currentContext) {
+        $path = $currentContext->appended($target);
+
         if ($this->store->exists($path . '.php')) {
             $fullClassName = implode('\\', $path->getElements());
             if ($this->namespace) {
@@ -103,10 +103,8 @@ class StaticRouter implements Router {
 
         if ($object instanceof Responding) {
             return new RespondingTarget($nextRequest, $object);
-        } else if (!count($nextRequest->getTarget()->getElements())) {
-            return new ObjectTarget($nextRequest, $object, $this->factory);
         } else {
-            throw new \Exception("[$fullClassName] needs to implement Responding");
+            return new ObjectTarget($nextRequest, $object, $this->factory);
         }
     }
 }

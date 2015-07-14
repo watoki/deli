@@ -77,7 +77,7 @@ class Request {
 
     /**
      * @param \watoki\deli\Path $context
-     * @return Request
+     * @return static
      */
     public function withContext(Path $context) {
         $copy = $this->copy();
@@ -87,7 +87,7 @@ class Request {
 
     /**
      * @param string $method
-     * @return Request
+     * @return static
      */
     public function withMethod($method) {
         $copy = $this->copy();
@@ -97,7 +97,7 @@ class Request {
 
     /**
      * @param \watoki\deli\Path $target
-     * @return Request
+     * @return static
      */
     public function withTarget($target) {
         $copy = $this->copy();

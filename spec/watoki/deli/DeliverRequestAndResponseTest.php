@@ -4,18 +4,16 @@ namespace spec\watoki\deli;
 use spec\watoki\deli\fixtures\RequestFixture;
 use spec\watoki\deli\fixtures\TestDelivererStub;
 use watoki\deli\Delivery;
-use watoki\deli\Path;
 use watoki\deli\Request;
-use watoki\deli\router\dynamic\PathMatcher;
-use watoki\deli\router\DynamicRouter;
 use watoki\deli\Router;
+use watoki\deli\router\DynamicRouter;
 use watoki\deli\target\CallbackTarget;
 use watoki\deli\target\RespondingTarget;
 use watoki\scrut\Specification;
 
 /**
  * This describes the basic set-up which gets the Response from a Target, found using a
- * Router which uses a `TargetFactory` to create the Target. There are different kind of
+ * Router which uses a `TargetFactory` to create the Target. There are different kinds of
  * Targets with different sources for the Response (e.g. closure, objects implementing the
  * Responding interface or plain objects).
  *
@@ -28,14 +26,14 @@ class DeliverRequestAndResponseTest extends Specification {
      */
     function testCallbackTarget() {
         $this->given_IsRoutedToTheCallback('path/to/target', function (Request $r) {
-            return 'Hello ' . $r->getArguments()->get('name') . ' from ' . $r->getContext();
+            return 'Hello ' . $r->getArguments()->get('name') . ' from ' . $r->getTarget() . ' in ' . $r->getContext();
         });
         $this->request->givenTheRequestHasTheContext('my/context');
         $this->request->givenTheRequestHasTheTarget('path/to/target');
         $this->request->givenTheRequestHasTheArgument_WithTheValue('name', 'Homer');
 
         $this->whenIRunTheDelivery();
-        $this->thenTheResponseShouldBe('Hello Homer from my/context/path/to/target');
+        $this->thenTheResponseShouldBe('Hello Homer from target in my/context/path/to');
     }
 
     /**

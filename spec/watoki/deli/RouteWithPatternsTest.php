@@ -30,8 +30,8 @@ class RouteWithPatternsTest extends Specification {
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldBeFound();
-        $this->thenTheRoutedRequestShouldHaveTheContext('foo/baz');
-        $this->thenTheRoutedRequestShouldHaveTheTarget('bar/me');
+        $this->thenTheRoutedRequestShouldHaveTheContext('foo');
+        $this->thenTheRoutedRequestShouldHaveTheTarget('baz/bar/me');
     }
 
     function testRootPath() {
@@ -39,6 +39,7 @@ class RouteWithPatternsTest extends Specification {
         $this->request->givenTheRequestHasTheTarget('some/thing');
 
         $this->whenIRouteTheRequest();
+        $this->thenTheRoutedRequestShouldHaveTheContext('');
         $this->thenTheRoutedRequestShouldHaveTheTarget('some/thing');
     }
 
@@ -48,7 +49,8 @@ class RouteWithPatternsTest extends Specification {
 
         $this->whenIRouteTheRequest();
         $this->thenTheTargetShouldBeFound();
-        $this->thenTheRoutedRequestShouldHaveTheContext('foo/baz/bar');
+        $this->thenTheRoutedRequestShouldHaveTheContext('foo/baz');
+        $this->thenTheRoutedRequestShouldHaveTheTarget('bar');
         $this->thenTheRoutedRequestArgument_ShouldBe('name', 'baz');
     }
 

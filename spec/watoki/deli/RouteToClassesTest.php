@@ -28,7 +28,7 @@ class RouteToClassesTest extends Specification {
         $this->givenAClass_In_WithTheBody('some\space\foo\bar\TargetNode', 'foo/bar', '
             /** @param $request <- */
             function doThis(\watoki\deli\Request $request) {
-                return "Found it at " . $request->getContext();
+                return "Found it at " . $request->getTarget() . " in " . $request->getContext();
             }
         ');
         $this->request->givenTheRequestHasTheContext('my/context');
@@ -36,7 +36,7 @@ class RouteToClassesTest extends Specification {
         $this->request->givenTheRequestHasTheMethod('this');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Found it at my/context/foo/bar/target");
+        $this->thenTheTargetShouldRespondWith("Found it at target in my/context/foo/bar");
     }
 
     function testTargetIsARespondingClass() {
@@ -46,7 +46,7 @@ class RouteToClassesTest extends Specification {
         $this->request->givenTheRequestHasTheTarget('foo/responding');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Hello foo/responding:");
+        $this->thenTheTargetShouldRespondWith("Hello foo:responding");
     }
 
     function testIndexNodeOnTheWay() {
@@ -61,21 +61,37 @@ class RouteToClassesTest extends Specification {
 
     function testIndexNodeNotResponding() {
         $this->givenTheBaseNamespaceIs('not');
-        $this->givenAClass_In_WithTheBody('not\foo\here\IndexNode', 'foo/here', '');
+        $this->givenAClass_In_WithTheBody('not\foo\here\IndexNode', 'foo/here', '
+            /** @param $request <- */
+            function doThis(\watoki\deli\Request $request) {
+                return "Found it at " . $request->getTarget() . " in " . $request->getContext();
+            }
+        ');
         $this->request->givenTheRequestHasTheTarget('foo/here/target');
+        $this->request->givenTheRequestHasTheMethod('this');
 
-        $this->whenITryToRouteTheRequest();
-        $this->try->thenTheException_ShouldBeThrown('[not\foo\here\IndexNode] needs to implement Responding');
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith("Found it at target in foo/here");
     }
 
-    function testTargetIsIndexClass() {
+    function testTargetIsIndexClassImplicitly() {
         $this->givenTheBaseNamespaceIs('index');
         $this->givenARespondingClass_In_Returning('index\foo\IndexNode', 'foo',
-                '"Hello " . $request->getContext()');
+                '"Hello " . $request->getContext() . ":" . $request->getTarget();');
         $this->request->givenTheRequestHasTheTarget('foo/');
 
         $this->whenIRouteTheRequest();
-        $this->thenTheTargetShouldRespondWith("Hello foo");
+        $this->thenTheTargetShouldRespondWith("Hello foo:");
+    }
+
+    function testTargetIsIndexClassExplicitly() {
+        $this->givenTheBaseNamespaceIs('explicit');
+        $this->givenARespondingClass_In_Returning('explicit\foo\IndexNode', 'foo',
+                '"Hello " . $request->getContext() . ":" . $request->getTarget();');
+        $this->request->givenTheRequestHasTheTarget('foo/index');
+
+        $this->whenIRouteTheRequest();
+        $this->thenTheTargetShouldRespondWith("Hello foo:index");
     }
 
     function testTargetDoesNotExist() {
