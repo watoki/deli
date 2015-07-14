@@ -76,6 +76,10 @@ class Path {
         return $newPath;
     }
 
+    /**
+     * @param $element
+     * @return static
+     */
     public function appended($element) {
         $copy = $this->copy();
         $copy->elements[] = $element;
