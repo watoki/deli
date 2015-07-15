@@ -15,17 +15,18 @@
     "require": {
         "php": ">=5.4",
         "watoki/collections": "1.0",
-        "watoki/factory": "0.5",
-        "watoki/reflect": "0.3",
-        "watoki/stores": "0.3"
+        "watoki/factory": "dev-master",
+        "watoki/reflect": "dev-master",
+        "watoki/stores": "dev-master"
     },
     "require-dev": {
-        "watoki/scrut": "0.3"
+        "watoki/scrut": "dev-master"
     },
     "autoload": {
         "psr-0": {
             "watoki\\deli": "src/",
             "spec\\watoki\\deli": ""
         }
-    }
+    },
+    "minimum-stability": "dev"
 }
