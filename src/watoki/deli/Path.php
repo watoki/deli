@@ -86,6 +86,10 @@ class Path {
         return $copy;
     }
 
+    /**
+     * @param $elements
+     * @return static
+     */
     public function appendedAll($elements) {
         $copy = $this->copy();
         foreach ($elements as $element) {
