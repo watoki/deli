@@ -9,6 +9,8 @@ use watoki\deli\target\CallbackTarget;
 
 require_once __DIR__ . '/../../../../bootstrap.php';
 
+error_reporting(0);
+
 $router = new NoneRouter(CallbackTarget::factory(function () {
     /** @noinspection PhpUndefinedFunctionInspection */
     causeFatalError();
