@@ -14,13 +14,13 @@
     ],
     "require": {
         "php": ">=5.4",
-        "watoki/collections": "dev-master",
-        "watoki/factory": "dev-master",
-        "watoki/reflect": "dev-master",
-        "watoki/stores": "dev-master"
+        "watoki/collections": "*",
+        "watoki/factory": "*",
+        "watoki/reflect": "*",
+        "watoki/stores": "*"
     },
     "require-dev": {
-        "watoki/scrut": "dev-master"
+        "watoki/scrut": "*"
     },
     "autoload": {
         "psr-0": {
