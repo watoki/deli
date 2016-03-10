@@ -30,11 +30,7 @@
   },
   "autoload": {
     "psr-4": {
-      "watoki\\deli\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
+      "watoki\\deli\\": "src/",
       "spec\\watoki\\deli\\": "spec/"
     }
   },
