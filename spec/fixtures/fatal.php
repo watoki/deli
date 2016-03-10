@@ -7,7 +7,7 @@ use watoki\deli\Request;
 use watoki\deli\router\NoneRouter;
 use watoki\deli\target\CallbackTarget;
 
-require_once __DIR__ . '/../../../../bootstrap.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 error_reporting(0);
 

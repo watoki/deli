@@ -36,7 +36,7 @@ class ObjectTarget extends Target {
 
         $this->object = $object;
         $this->factory = $factory;
-        $this->filters = $factory->getInstance(FilterRegistry::$CLASS);
+        $this->filters = $factory->getInstance(FilterRegistry::class);
 
         $this->parameterInjectionFilter = function (\ReflectionParameter $parameter) {
             $pattern = '/@param.+\$' . $parameter->getName() . '.+' . DefaultProvider::INJECTION_TOKEN . '/';

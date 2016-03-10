@@ -5,8 +5,6 @@ use watoki\collections\Map;
 
 class DefaultFilterRegistry extends FilterRegistry {
 
-    public static $CLASS = __CLASS__;
-
     function __construct() {
         $this->registerFilter('array', new ArrayFilter());
         $this->registerFilter('boolean', new BooleanFilter());

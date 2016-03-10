@@ -9,7 +9,7 @@ use watoki\deli\target\ObjectTarget;
 use watoki\deli\Target;
 use watoki\deli\target\RespondingTarget;
 use watoki\factory\Factory;
-use watoki\stores\file\raw\RawFileStore;
+use watoki\stores\Store;
 
 class StaticRouter implements Router {
 
@@ -17,7 +17,7 @@ class StaticRouter implements Router {
 
     const DEFAULT_INDEX = 'index';
 
-    /** @var RawFileStore */
+    /** @var Store */
     protected $store;
 
     /** @var string */
@@ -32,7 +32,7 @@ class StaticRouter implements Router {
     /** @var Factory */
     protected $factory;
 
-    function __construct(Factory $factory, RawFileStore $store, $namespace,
+    function __construct(Factory $factory, Store $store, $namespace,
                          $suffix = self::DEFAULT_SUFFIX, $index = self::DEFAULT_INDEX) {
         $this->factory = $factory;
         $this->store = $store;
@@ -82,7 +82,7 @@ class StaticRouter implements Router {
     private function createTargetFromClassPath($target, Request $request, Path $currentContext) {
         $path = $currentContext->appended($target);
 
-        if ($this->store->exists($path . '.php')) {
+        if ($this->store->has($path . '.php')) {
             $fullClassName = implode('\\', $path->getElements());
             if ($this->namespace) {
                 $fullClassName = rtrim($this->namespace, '\\') . '\\' . trim($fullClassName, '\\');

@@ -196,7 +196,7 @@ class RouteToObjectsTest extends Specification {
     }
 
     private function whenIGetTheResponseFromTheTarget() {
-        $this->factory->setSingleton(new DefaultFilterRegistry(), FilterRegistry::$CLASS);
+        $this->factory->setSingleton(new DefaultFilterRegistry(), FilterRegistry::class);
         $target = ObjectTarget::factory($this->factory, $this->object)->create($this->request->request);
         $this->response = $target->respond();
     }

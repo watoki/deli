@@ -6,6 +6,7 @@ use watoki\deli\router\StaticRouter;
 use watoki\deli\Target;
 use watoki\scrut\ExceptionFixture;
 use watoki\scrut\Specification;
+use watoki\stores\stores\MemoryStore;
 
 /**
  * The `StaticRouter` maps Paths to classes relative to a root directory.
@@ -15,7 +16,7 @@ use watoki\scrut\Specification;
  *
  * @property RequestFixture request <-
  * @property ExceptionFixture try <-
- * @property \spec\watoki\stores\fixtures\FileStoreFixture file <-
+ * @property MemoryStore store <-
  */
 class RouteToClassesTest extends Specification {
 
@@ -144,11 +145,11 @@ class RouteToClassesTest extends Specification {
         eval($code);
 
         $fileName = ($folder ? $folder . '/' : '') . $name .'.php';
-        $this->file->givenAFile_WithContent($fileName, '<?php ' . $code);
+        $this->store->write('<?php ' . $code, $fileName);
     }
 
     public function whenIRouteTheRequest() {
-        $router = new StaticRouter($this->factory, $this->file->store, $this->namespace, $this->suffix);
+        $router = new StaticRouter($this->factory, $this->store, $this->namespace, $this->suffix);
         $this->target = $router->route($this->request->request);
     }
 

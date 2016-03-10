@@ -3,8 +3,6 @@ namespace watoki\deli\filter;
  
 class FilterRegistry {
 
-    public static $CLASS = __CLASS__;
-
     /** @var array|Filter[] */
     private $filters = array();
 

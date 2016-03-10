@@ -1,32 +1,42 @@
 {
-    "name": "watoki/deli",
-    "description": "Abstract delivery system for PHP applications",
-    "keywords": ["delivery", "routing", "router", "watoki"],
-    "homepage": "http://github.com/watoki/deli",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Nikolas Martens",
-            "email": "Nikolas.M@rtens.org",
-            "homepage": "http://rtens.org"
-        }
-    ],
-    "require": {
-        "php": ">=5.4",
-        "watoki/collections": "*",
-        "watoki/factory": "*",
-        "watoki/reflect": "*",
-        "watoki/stores": "*"
-    },
-    "require-dev": {
-        "watoki/scrut": "*"
-    },
-    "autoload": {
-        "psr-0": {
-            "watoki\\deli": "src/",
-            "spec\\watoki\\deli": ""
-        }
-    },
-    "minimum-stability": "dev"
+  "name": "watoki/deli",
+  "description": "Abstract delivery system for PHP applications",
+  "keywords": [
+    "delivery",
+    "routing",
+    "router",
+    "watoki"
+  ],
+  "homepage": "http://github.com/watoki/deli",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Nikolas Martens",
+      "email": "Nikolas.M@rtens.org",
+      "homepage": "http://rtens.org"
+    }
+  ],
+  "require": {
+    "php": ">=5.4",
+    "watoki/collections": "*",
+    "watoki/factory": "*",
+    "watoki/reflect": "*",
+    "watoki/stores": "*"
+  },
+  "require-dev": {
+    "watoki/scrut": "*",
+    "phpunit/phpunit": "3.7.*@stable"
+  },
+  "autoload": {
+    "psr-4": {
+      "watoki\\deli\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "spec\\watoki\\deli\\": "spec/"
+    }
+  },
+  "minimum-stability": "dev"
 }
